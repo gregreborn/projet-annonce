@@ -11,26 +11,30 @@ class Controller
 	//$_pageContent : la page à templater pour Moustache
 	//$_data : tableau de données à passer à la vue
     function renderTemplate($_pageContent, $_data = null)
-    {			
-		// Ajout des constantes de chemin absolu
-        $_data["PUBLIC_ABSOLUTE_PATH"] = PUBLIC_ABSOLUTE_PATH;
-        $_data["SERVER_ABSOLUTE_PATH"] = SERVER_ABSOLUTE_PATH;
+{			
+    // Ajout des constantes de chemin absolu
+    $_data["PUBLIC_ABSOLUTE_PATH"] = PUBLIC_ABSOLUTE_PATH;
+    $_data["SERVER_ABSOLUTE_PATH"] = SERVER_ABSOLUTE_PATH;
 
-		$_data["informations"] = self::getInformations();
-        $message = self::getMessage();
-		$_data["message"] = $message["message"];
-		$_data["erreur"] = $message["erreur"];
+    $_data["informations"] = self::getInformations();
+    $message = self::getMessage();
+    $_data["message"] = $message["message"];
+    $_data["erreur"] = $message["erreur"];
 
-		$mustache = new Mustache_Engine();
+    // Configure Mustache with a partials loader
+    $mustache = new Mustache_Engine([
+        'partials_loader' => new Mustache_Loader_FilesystemLoader(__DIR__ . '/../public/templates/public/partials')
+    ]);
 
-		$_data["cookieVu"] = !($_COOKIE["cookieVuCL"] == "1") && (!isset($_SESSION["cookieVuCL"]));
+    $_data["cookieVu"] = !($_COOKIE["cookieVuCL"] == "1") && (!isset($_SESSION["cookieVuCL"]));
 
-		$_data["publicMessage"] = $mustache->render(file_get_contents(HTML_PUBLIC . "/message.html"),$_data);
-		$_data["publicEntete"] = $mustache->render(file_get_contents(HTML_PUBLIC . "/entete.html"),$_data);
-		$_data["publicFooter"] = $mustache->render(file_get_contents(HTML_PUBLIC . "/footer.html"),$_data);
+    // Optional: You can still render some partials explicitly if needed
+    $_data["publicMessage"] = $mustache->render(file_get_contents(HTML_PUBLIC . "/message.html"), $_data);
+    $_data["publicEntete"] = $mustache->render(file_get_contents(HTML_PUBLIC . "/entete.html"), $_data);
+    $_data["publicFooter"] = $mustache->render(file_get_contents(HTML_PUBLIC . "/footer.html"), $_data);
 
-        echo $mustache->render($_pageContent, $_data);
-    }
+    echo $mustache->render($_pageContent, $_data);
+}
 
     //Afficher la page demandée pour l'Admin
 	//$_pageContent : la page à templater pour Moustache

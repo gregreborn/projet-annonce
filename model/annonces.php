@@ -9,7 +9,7 @@ class Annonce extends Model
     protected static $columns = [
         'nomOrganisme', 'nom', 'prenom', 'titre', 'description',
         'telephone', 'courriel', 'site', 'dateDeDebutPub', 'dateDeFinPub',
-        'adresse', 'ville', 'province', 'codePostal', 'mrc'
+        'adresse', 'ville', 'province', 'codePostal', 'mrc','categoriesId'
     ];
 
     // ✅ Insert a new annonce
@@ -28,15 +28,39 @@ class Annonce extends Model
     }
 
     // ✅ Retrieve all annonces
-    public static function getAllAnnonces()
+   public static function getAllAnnonces()
     {
         return self::gets("SELECT * FROM " . static::$table);
+    }
+
+    // ✅ Retrieve all annonces with category details
+    public static function getAllAnnoncesWithCategories()
+    {
+        return self::gets("SELECT a.*, c.nom as categorie FROM " . static::$table . " a JOIN categories c ON a.categoriesId = c.id");
+    }
+
+    // ✅ recent annonces
+    public static function recentAnnonces()
+    {
+        return self::gets("SELECT * FROM " . static::$table . " ORDER BY id DESC LIMIT 5");
     }
 
     // ✅ Retrieve an annonce by ID
     public static function getAnnonceById($id)
     {
         return self::get("SELECT * FROM " . static::$table . " WHERE id = ?", [$id]);
+    }
+
+    // ✅ Retrieve annonces by category ID
+    public static function getAnnoncesByCategoryId($categoryId)
+    {
+        return self::gets("SELECT * FROM " . static::$table . " WHERE categoriesId = ?", [$categoryId]);
+    }
+
+    // ✅ count annonces by category ID
+    public static function countAnnoncesByCategoryId($categoryId)
+    {
+        return self::get("SELECT COUNT(*) as total FROM " . static::$table . " WHERE categoriesId = ?", [$categoryId]);
     }
 
     // ✅ Update an annonce

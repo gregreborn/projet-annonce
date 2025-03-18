@@ -1,18 +1,36 @@
 <?php
 require_once __DIR__ . "/config.php";
-require_once __DIR__ . "/../model/annonce.php";
+require_once __DIR__ . "/../model/annonces.php";
+require_once __DIR__ . "/../model/categories.php";
 require_once __DIR__ . "/db.php";
-use model\Annonce;
 
-// Simple assertion helper.
+use model\Annonce;
+use model\Categories;
+
+echo "<h2>Testing CRUD for Annonces</h2>";
+
 function assertTrue($condition, $message) {
     if (!$condition) {
         throw new Exception("Assertion failed: " . $message);
     }
 }
 
-// Wrap each test in its own function.
+// Ensure a test category exists and return its ID.
+function testEnsureCategoryExists() {
+    // Try to retrieve a category with ID 1.
+    $category = Categories::getCategoryById(1);
+    if (!$category) {
+        // Create a new test category if not found.
+        $newCategoryId = Categories::createCategory("Test Category for Annonce");
+        echo "✅ Created test category with ID: $newCategoryId<br>";
+        return $newCategoryId;
+    }
+    return 1;
+}
+
+// ✅ 1. Insert a new annonce
 function testCreateAnnonce() {
+    $categoryId = testEnsureCategoryExists();  // Ensure valid category exists.
     $testAnnonceData = [
         "nomOrganisme"     => "Test Organization",
         "nom"              => "Doe",
@@ -28,7 +46,8 @@ function testCreateAnnonce() {
         "ville"            => "Montreal",
         "province"         => "Quebec",
         "codePostal"       => "H1A2B3",
-        "mrc"              => "Test MRC"
+        "mrc"              => "Test MRC",
+        "categoriesId"     => $categoryId
     ];
     $insertedId = Annonce::createAnnonce($testAnnonceData);
     assertTrue(is_numeric($insertedId) && $insertedId > 0, "Failed to insert test ad.");
@@ -44,6 +63,10 @@ function testGetAllAnnonces() {
 }
 
 function testUpdateAnnonce($id) {
+    // Retrieve the original record to get the current categoriesId
+    $originalAnnonce = Annonce::getAnnonceById($id);
+    $originalCategoryId = $originalAnnonce['categoriesId'];
+    
     $updateData = [
         "nomOrganisme"     => "Updated Organization",
         "nom"              => "Smith",
@@ -59,12 +82,15 @@ function testUpdateAnnonce($id) {
         "ville"            => "Toronto",
         "province"         => "Ontario",
         "codePostal"       => "M5A1A1",
-        "mrc"              => "Updated MRC"
+        "mrc"              => "Updated MRC",
+        "statut"          => "0", // Set status to 0 (inactive)
+        "categoriesId"     => $originalCategoryId  // Reuse the valid category id
     ];
     $updatedRows = Annonce::updateAnnonce($id, $updateData);
     assertTrue($updatedRows > 0, "Failed to update ad with ID: $id.");
     echo "✅ Updated ad with ID: $id<br>";
 }
+
 
 function testGetAnnonceById($id) {
     $annonce = Annonce::getAnnonceById($id);
@@ -83,7 +109,6 @@ function testDeleteAnnonce($id) {
 
 // Run all tests in sequence.
 try {
-    echo "<h2>Testing CRUD for Annonces</h2>";
     $insertedId = testCreateAnnonce();
     testGetAllAnnonces();
     testUpdateAnnonce($insertedId);
