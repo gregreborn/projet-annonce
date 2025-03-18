@@ -2,8 +2,8 @@
 	// Base de données
     define("DBNAME", "projet-babillard");    //Nom de la bd
     define("HOST", "localhost");      //Le serveur
-    define("USERNAME", "gregory");  //Le nom de l'utilisateur
-    define("PASSWORD", "TYq1R!c4vm9BC(N0");  //Le mot de passe de l'utilisateur
+    define("USERNAME", "root");  //Le nom de l'utilisateur
+    define("PASSWORD", "");  //Le mot de passe de l'utilisateur
 
     //Nom du dossier qui contient le code source (repository/, public/, sass/, js/ etc.)
     define("SERVER_ROOT_DIRECTORY", "");
@@ -37,3 +37,16 @@
     define("INDICE_DEBUT", 0);
     define("INDICE_FIN", 23);
     define("INCREMENT", 1);
+
+    //Constantes pour les messages d'erreurs
+    define('ERR_ORGANISATION_REQUIRED', 'Le nom de l\'organisation est obligatoire.');
+    define('ERR_LAST_NAME_REQUIRED', 'Le nom de famille est obligatoire.');
+    define('ERR_FIRST_NAME_REQUIRED', 'Le prénom est obligatoire.');
+    define('ERR_TITLE_REQUIRED', 'Le titre est obligatoire.');
+    define('ERR_DESCRIPTION_REQUIRED', 'La description est obligatoire.');
+    define('ERR_INVALID_EMAIL', 'Format d\'e-mail invalide.');
+    define('ERR_PHONE_NUMERIC', 'Le numéro de téléphone doit être numérique.');
+    define('ERR_INVALID_URL', 'URL du site web invalide.');
+    define('ERR_CITY_REQUIRED', 'La ville est obligatoire.');
+    define('ERR_PROVINCE_REQUIRED', 'La province est obligatoire.');
+    define('ERR_POSTAL_REQUIRED', 'Le code postal est obligatoire.');

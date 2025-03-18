@@ -8,4 +8,6 @@ class accueil extends Controller
 	{
         $this->renderTemplate(file_get_contents(HTML_PUBLIC . "/accueil.html"), $data);
 	}	
+
+	
 }
