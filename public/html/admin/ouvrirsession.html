@@ -1,0 +1,33 @@
+        {{{adminEntete}}}
+
+        <title>Connexion - Administration - Projet</title>
+        <link rel="stylesheet" href="{{PUBLIC_ABSOLUTE_PATH}}/css/admin.css">
+    </head>
+    <body>
+		<div class="medium-4 columns"><br/></div>
+		<div class="medium-4 columns text-center marge">
+			
+			{{{espace}}}
+
+			{{{publicMessage}}}
+
+			<form class="text-left" action="{{SERVER_ABSOLUTE_PATH}}/admin/connexion" method="post">
+			
+				<input class="noencadre" onfocus="afficherLabel(1, this);" onblur="masquerLabel(1, this, 'Courriel');" name="courriel" value="{{{courriel}}}" type="text"  required  placeholder = "Courriel"/>
+			
+				<input id="password" class="noencadre" onfocus="afficherLabel(2, this);" onblur="masquerLabel(2, this, 'Mot de passe');" type="password" value="{{{password}}}" required  name="password" placeholder = "Mot de passe">
+		
+				<input id="affichermasquerpassword" type = "checkbox" onclick = "showpassword();" />
+				<label for ="affichermasquerpassword"> Afficher/masquer le mot de passe</label>
+
+				<div class="text-center">
+					<input class="button button_1" value="Se connecter" type="submit" />
+				</div>
+			</form>				
+		</div>
+		<div class="medium-4 columns"><br/></div>
+
+		<script src="{{PUBLIC_ABSOLUTE_PATH}}/js/base.js"></script>	
+		<script src="{{PUBLIC_ABSOLUTE_PATH}}/js/admin.js"></script>			
+	</body>
+</html>
