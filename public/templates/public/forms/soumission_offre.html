@@ -1,0 +1,92 @@
+<h1 class="text-center">Soumission d’une offre</h1>
+<form method="POST" action="{{SERVER_ABSOLUTE_PATH}}/annonces/create" enctype="multipart/form-data">
+  <div>
+    <label for="nomOrganisme">Nom de l’organisme *</label>
+    <input type="text" name="nomOrganisme" id="nomOrganisme" required>
+  </div>
+  <div>
+    <label for="nom">Nom *</label>
+    <input type="text" name="nom" id="nom" required>
+  </div>
+  <div>
+    <label for="prenom">Prénom *</label>
+    <input type="text" name="prenom" id="prenom" required>
+  </div>
+  <div>
+    <label for="titre">Titre de l’annonce *</label>
+    <input type="text" name="titre" id="titre" required>
+  </div>
+  <div>
+    <label for="description">Description *</label>
+    <textarea name="description" id="description" required></textarea>
+  </div>
+  <div>
+    <label for="telephone">Téléphone</label>
+    <div class="phone-input-container">
+      <input type="tel" id="telephone" name="telephone" placeholder="+1 5142243490">
+      <span class="tooltip-icon" onclick="togglePhoneExample()">❓</span>
+    </div>
+    <div id="phone-example" class="phone-example hidden">
+      <strong>Exemples:</strong><br>
+      🇨🇦 Canada: <code>+1 5142243490</code><br>
+      🇫🇷 France: <code>+33 612345678</code><br>
+      🇧🇪 Belgique: <code>+32 472123456</code>
+    </div>
+  </div>  
+  <div>
+    <label for="courriel">Courriel *</label>
+    <input type="email" name="courriel" id="courriel" required>
+  </div>
+  <div>
+    <small>Veuillez entrer l'URL complète (ex: https://example.com).</small>
+    <label for="site">Site Web</label>
+    <input type="url" name="site" id="site">
+  </div>
+  <div>
+    <label for="dateDeDebutPub">Date de début</label>
+    <input type="date" name="dateDeDebutPub" id="dateDeDebutPub">
+  </div>
+  <div>
+    <label for="dateDeFinPub">Date de fin</label>
+    <input type="date" name="dateDeFinPub" id="dateDeFinPub">
+  </div>
+  <div>
+    <label for="adresse">Adresse</label>
+    <input type="text" name="adresse" id="adresse">
+  </div>
+  <div>
+    <label for="ville">Ville</label>
+    <input type="text" name="ville" id="ville">
+  </div>
+  <div>
+    <label for="province">Province</label>
+    <input type="text" name="province" id="province">
+  </div>
+  <div>
+    <label for="codePostal">Code postal</label>
+    <input type="text" name="codePostal" id="codePostal">
+  </div>
+  <div>
+    <label for="mrc">MRC</label>
+    <input type="text" name="mrc" id="mrc">
+  </div>
+
+  <!-- Dropdown for category selection -->
+  <div>
+    <label for="categoriesId">Catégorie *</label>
+    <select name="categoriesId" id="categoriesId" required>
+      <option value="">-- Sélectionner une catégorie --</option>
+      {{#categories}}
+        <option value="{{id}}">{{nom}}</option>
+      {{/categories}}
+    </select>    
+  </div>
+
+  <div>
+    <label for="media">Joindre un fichier (image, vidéo ou PDF)</label>
+    <input type="file" name="media[]" id="media" multiple>
+  </div>
+  <!-- Hidden field for type -->
+  <input type="hidden" name="type" value="offre">
+  <button type="submit" class="button expanded">Soumettre l’offre</button>
+</form>

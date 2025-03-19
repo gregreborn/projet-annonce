@@ -9,8 +9,9 @@ class Annonce extends Model
     protected static $columns = [
         'nomOrganisme', 'nom', 'prenom', 'titre', 'description',
         'telephone', 'courriel', 'site', 'dateDeDebutPub', 'dateDeFinPub',
-        'adresse', 'ville', 'province', 'codePostal', 'mrc','categoriesId'
+        'adresse', 'ville', 'province', 'codePostal', 'mrc', 'type', 'categoriesId'
     ];
+    
 
     // ✅ Insert a new annonce
     public static function createAnnonce($data)
@@ -50,6 +51,13 @@ class Annonce extends Model
     {
         return self::get("SELECT * FROM " . static::$table . " WHERE id = ?", [$id]);
     }
+
+    // ✅ Retrieve annonces by type (offre or besoin)
+    public static function getAnnoncesByType($type)
+    {
+        return self::gets("SELECT * FROM " . static::$table . " WHERE type = ?", [$type]);
+    }
+
 
     // ✅ Retrieve annonces by category ID
     public static function getAnnoncesByCategoryId($categoryId)

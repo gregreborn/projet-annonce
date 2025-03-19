@@ -15,8 +15,9 @@
             {
                 return false;
             }
-            return $query->fetchAll();
+            return $query->fetchAll(PDO::FETCH_ASSOC);
         }
+
 
         //Exécute une requête à la base de données et retourne la première ligne. Retourne faux si l'exécution n'a pas fonctionné
         static function queryFirst($_request, $_params = null)
@@ -50,13 +51,16 @@
         {
             self::ensureConnected();
             $query = self::prepare($_request, $_params);
-
             if (!$query->execute())
             {
+                error_log("PDO Error: " . print_r($query->errorInfo(), true));
                 return -1;
             }
             return self::$db->lastInsertId();
         }
+
+
+
 
         //Remplace les points d'interrogation par les valeurs dans un tableau et retourne une requête préparée
         private static function prepare($_request, $_params = null)

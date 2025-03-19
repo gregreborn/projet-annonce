@@ -1,0 +1,35 @@
+.phone-input-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+  
+  .tooltip-icon {
+    cursor: pointer;
+    font-size: 14px;
+    color: #007bff;
+  }
+  
+  .phone-example {
+    background: #f8f9fa;
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    margin-top: 5px;
+    display: none;
+    width: fit-content;
+  }
+  
+  .phone-example.hidden {
+    display: none;
+  }
+  
+  .phone-example code {
+    background: #eee;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+  }
+  

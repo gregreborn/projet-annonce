@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="{{PUBLIC_ABSOLUTE_PATH}}/assets/css/base.css">
+    <link rel="stylesheet" href="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/foundation/css/foundation.min.css">
+
+    <!-- Intl-Tel-Input Styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.min.css">
+</head>
+<body>
+    <header>
+        {{> entete }}
+    </header>
+    
+    <main class="grid-container">
+        {{{content}}}
+    </main>
+    
+    <footer>
+        {{> footer }}
+    </footer>
+    
+    {{> message }}
+
+    <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/jquery.min.js"></script>
+    <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/foundation/js/foundation.min.js"></script>
+    <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/jquery-ui-1.11.4.custom/jquery-ui.js"></script>
+    <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/jquery.scrollTo.js"></script>
+    <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/js/base.js"></script>
+
+    <!-- Intl-Tel-Input Styles -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const phoneInputs = document.querySelectorAll("input[type='tel']");
+    phoneInputs.forEach(function(input) {
+      const iti = window.intlTelInput(input, {
+        initialCountry: "auto",
+        geoIpLookup: function(success, failure) {
+          fetch("https://ipapi.co/json")
+            .then(res => res.json())
+            .then(data => success(data.country_code))
+            .catch(failure);
+        },
+        utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
+      });
+
+      input.closest("form")?.addEventListener("submit", function(event) {
+        if (!iti.isValidNumber()) {
+          event.preventDefault();
+          document.getElementById("phoneError").classList.remove("hidden");
+        } else {
+          input.value = iti.getNumber(); // Convert to E.164 format before submission
+        }
+      });
+    });
+
+    // Example toggle functionality (applies globally)
+    document.querySelectorAll(".example-btn").forEach(button => {
+      button.addEventListener("click", function() {
+        const target = document.getElementById(this.dataset.target);
+        target.classList.toggle("hidden");
+        this.textContent = target.classList.contains("hidden") ? "📖 Voir un exemple" : "❌ Masquer l'exemple";
+      });
+    });
+  });
+</script>
+<script>
+    function togglePhoneExample() {
+      var exampleBox = document.getElementById("phone-example");
+      if (exampleBox.style.display === "none" || exampleBox.style.display === "") {
+        exampleBox.style.display = "block";
+      } else {
+        exampleBox.style.display = "none";
+      }
+    }
+  </script>
+  
+<style>
+  .hidden { display: none; }
+  .example-btn {
+    background: none;
+    border: none;
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.9em;
+    padding: 0;
+    margin-left: 10px;
+  }
+  .error-message {
+    color: red;
+    font-size: 0.9em;
+    margin-top: 5px;
+  }
+</style>
+
+<!-- Display phone validation error -->
+<p id="phoneError" class="error-message hidden">❌ Numéro de téléphone invalide.</p>
+
+</body>
+</html>

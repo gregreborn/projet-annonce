@@ -7,34 +7,90 @@ use \model\model as model;
 //Classe parente fournissant des fonctions pouvant être utilisées par tous ses enfants
 class Controller
 {
-	//Afficher la page demandée
-	//$_pageContent : la page à templater pour Moustache
-	//$_data : tableau de données à passer à la vue
-    function renderTemplate($_pageContent, $_data = null)
-{			
-    // Ajout des constantes de chemin absolu
-    $_data["PUBLIC_ABSOLUTE_PATH"] = PUBLIC_ABSOLUTE_PATH;
-    $_data["SERVER_ABSOLUTE_PATH"] = SERVER_ABSOLUTE_PATH;
+	  // Render a template string with Mustache
+	  function renderTemplate($_pageContent, $_data = []) {
+        // Load absolute paths from config.php
+        $_data["PUBLIC_ABSOLUTE_PATH"] = PUBLIC_ABSOLUTE_PATH;
+        $_data["SERVER_ABSOLUTE_PATH"] = SERVER_ABSOLUTE_PATH;
 
-    $_data["informations"] = self::getInformations();
-    $message = self::getMessage();
-    $_data["message"] = $message["message"];
-    $_data["erreur"] = $message["erreur"];
+        // Fetch session messages & info
+        $_data["informations"] = self::getInformations();
+        $message = self::getMessage();
+        $_data["message"] = $message["message"] ?? "";
+        $_data["erreur"] = $message["erreur"] ?? false;
 
-    // Configure Mustache with a partials loader
-    $mustache = new Mustache_Engine([
-        'partials_loader' => new Mustache_Loader_FilesystemLoader(__DIR__ . '/../public/templates/public/partials')
-    ]);
+        // Define partials path (convert HTTP URL to file system path)
+        $partialsPath = str_replace("http://localhost/projet-annonce", __DIR__ . "/..", HTML_PUBLIC_PARTIALS_FS);
 
-    $_data["cookieVu"] = !($_COOKIE["cookieVuCL"] == "1") && (!isset($_SESSION["cookieVuCL"]));
+        if (!is_dir($partialsPath)) {
+            die("❌ ERROR: Partials directory not found: " . $partialsPath);
+        }
 
-    // Optional: You can still render some partials explicitly if needed
-    $_data["publicMessage"] = $mustache->render(file_get_contents(HTML_PUBLIC . "/message.html"), $_data);
-    $_data["publicEntete"] = $mustache->render(file_get_contents(HTML_PUBLIC . "/entete.html"), $_data);
-    $_data["publicFooter"] = $mustache->render(file_get_contents(HTML_PUBLIC . "/footer.html"), $_data);
+        // Check required partials exist
+        $requiredPartials = ['entete', 'footer', 'message'];
+        foreach ($requiredPartials as $partial) {
+            $filePath = "$partialsPath/$partial.mustache";
+            if (!file_exists($filePath) || !is_readable($filePath)) {
+                die("❌ ERROR: Missing or unreadable partial file: " . $filePath);
+            }
+        }
 
-    echo $mustache->render($_pageContent, $_data);
-}
+        // Initialize Mustache engine with proper loaders
+        $mustache = new Mustache_Engine([
+            'cache' => __DIR__ . '/../cache/mustache',
+            'loader' => new Mustache_Loader_StringLoader(),
+            'partials_loader' => new Mustache_Loader_FilesystemLoader($partialsPath, ['extension' => '.mustache'])
+        ]);
+
+        try {
+            echo $mustache->render($_pageContent, $_data);
+        } catch (Exception $e) {
+            die("❌ ERROR Rendering Template: " . $e->getMessage());
+        }
+    }
+
+    // Render content wrapped with the base layout
+    function renderWithBase($_content, $_data = [])
+	{
+		// Make sure to pass in the absolute path variables!
+		$_data["PUBLIC_ABSOLUTE_PATH"] = PUBLIC_ABSOLUTE_PATH;
+		$_data["SERVER_ABSOLUTE_PATH"] = SERVER_ABSOLUTE_PATH;
+		
+		$baseTemplatePath = HTML_PUBLIC_PARTIALS_FS . "/base.mustache";
+		if (!file_exists($baseTemplatePath)) {
+			die("❌ ERROR: Base template not found at: " . $baseTemplatePath);
+		}
+		$baseTemplate = file_get_contents($baseTemplatePath);
+
+		// Set default title if not provided.
+		if (!isset($_data['title'])) {
+			$_data['title'] = "Mon Site";
+		}
+
+		// Inject the content fragment.
+		$_data['content'] = $_content;
+		// Optionally, set the current year.
+		$_data['currentYear'] = date('Y');
+
+		// Use the partials filesystem path
+		$partialsPath = HTML_PUBLIC_PARTIALS_FS;
+		if (!is_dir($partialsPath)) {
+			die("❌ ERROR: Partials directory not found: " . $partialsPath);
+		}
+
+		$mustache = new Mustache_Engine([
+			'cache' => __DIR__ . '/../cache/mustache',
+			'loader' => new Mustache_Loader_StringLoader(),
+			'partials_loader' => new Mustache_Loader_FilesystemLoader($partialsPath, ['extension' => '.mustache'])
+		]);
+
+		try {
+			echo $mustache->render($baseTemplate, $_data);
+		} catch (Exception $e) {
+			die("❌ ERROR Rendering Base Template: " . $e->getMessage());
+		}
+	}
+
 
     //Afficher la page demandée pour l'Admin
 	//$_pageContent : la page à templater pour Moustache
@@ -49,7 +105,7 @@ class Controller
 		$_data["message"] = self::getMessage();
 		$_data["informations"] = self::getInformations();
 
-		$_data["publicMessage"] = $mustache->render(file_get_contents(HTML_PUBLIC . "/message.html"),$_data);
+		$_data["publicMessage"] = $mustache->render(file_get_contents(HTML_PUBLIC_BASE . "/message.html"),$_data);
 		$_data["adminEntete"] = $mustache->render(file_get_contents(HTML_ADMIN . "/entete.html"),$_data);
 		$_data["adminMenu"] = $mustache->render(file_get_contents(HTML_ADMIN . "/menu.html"),$_data);
 		$_data["adminFooter"] = $mustache->render(file_get_contents(HTML_ADMIN . "/footer.html"),$_data);
@@ -57,36 +113,23 @@ class Controller
         echo $mustache->render($_pageContent, $_data);
     }
 
-     static function getMessage()
-    {
-    	if(isset($_SESSION["rcrcq_message"])) //si un message doit être envoyé à l'utilisateur
-		{
-			$message = array();
-			$message["message"] = $_SESSION["rcrcq_message"];
-			$message["erreur"] = isset($_SESSION["rcrcq_erreur"]) and ($_SESSION["rcrcq_erreur"] == 1);
-
-			unset($_SESSION["rcrcq_message"]);
-			if(isset($_SESSION["rcrcq_erreur"]))
-				unset($_SESSION["rcrcq_erreur"]);
-		}
-		else $message = 0;
-
-		return $message;
+	static function getMessage() {
+        if(isset($_SESSION["rcrcq_message"])) {
+            $message = [];
+            $message["message"] = $_SESSION["rcrcq_message"];
+            $message["erreur"] = isset($_SESSION["rcrcq_erreur"]) && ($_SESSION["rcrcq_erreur"] == 1);
+            unset($_SESSION["rcrcq_message"]);
+            if(isset($_SESSION["rcrcq_erreur"]))
+                unset($_SESSION["rcrcq_erreur"]);
+        } else {
+            $message = 0;
+        }
+        return $message;
     }
 
-
-	static function getInformations()
-	{
-		if(isset($_SESSION["rcrcq_informations"])) //si le tableau d'informations doit être envoyé à la page
-		{
-			$informations = $_SESSION["rcrcq_informations"];
-		}
-		else
-			$informations = 1;
-
-		return $informations;
-	}
-
+    static function getInformations() {
+        return isset($_SESSION["rcrcq_informations"]) ? $_SESSION["rcrcq_informations"] : 1;
+    }
     //Générer un code
 	//$_longueur : longueur du code
 	function genererCode($_longueur = 16)

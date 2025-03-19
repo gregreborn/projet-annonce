@@ -1,6 +1,6 @@
 <?php
 	ini_set('display_errors', 1);
-    error_reporting(0);
+    error_reporting(E_ALL);
 	libxml_use_internal_errors(false);
 
     /*
@@ -17,78 +17,72 @@
 
     session_start();
 
-	// "mot dans url => nom controller"
-    $routes = array
-    (
-        "accueil" => "accueil",
-        "admin" => "admin",
+	  // Routes: URL => Controller@Method
+      $routes = array(
+        "accueil"           => "accueil@render",
+        "annonces"          => "annonceController@getAllAnnonces",
+        "annonces/create"   => "annonceController@createAnnonce", 
+        "annonces/update"   => "annonceController@updateAnnonce", 
+        "annonces/delete"   => "annonceController@deleteAnnonce", 
+        "admin"             => "admin@render",
+        "choix_annonce"     => "annonceController@renderChoixAnnonce",
+        "liste_offres"      => "annonceController@getAnnoncesByType@offre",
+        "liste_besoins"     => "annonceController@getAnnoncesByType@besoin",
+        "soumission_offre"  => "annonceController@renderFormOffre",
+        "soumission_besoin" => "annonceController@renderFormBesoin",
+    );
 
-    );  
-   
-    // Ajout d'une barre oblique à la fin pour ne pas avoir de dépassement de tableau dans les traitements futurs
+    // Ensure trailing slash for consistency
     $path = strtolower($_SERVER["REQUEST_URI"]);
-    $i = INCREMENT;
-    
-    if(substr($path, -1) != "/")
+    if (substr($path, -1) != "/") {
         $path .= "/";
-    
-    //Obtient path
-    $path = explode("/",$path);
-
-    if($path[1 + $i] == "") 
-        $path[1 + $i] = "accueil";
-
-    $obj_controller = new controller();
-
-    //Détermine si path valide
-    if(array_key_exists($path[1 + $i],$routes))
-    {
-        include "controller/" . strtolower($routes[$path[1 + $i]]) . ".php";
-       
-        $controller = new $routes[$path[1 + $i]]; //Instanciation du contrôleur routé           
-
-        // Si aucune méthode n'est spécifiée, on appelle la fonction render() du controlleur
-        $method = ((count($path) == (3 + $i)) && ($path[2 + $i] == "")) || (count($path) == (2 + $i)) ? $method = "render" : $method = str_replace("-", "", $path[2 + $i]);
-
-
-        if( (stristr($path[1 + $i], 'admin')  && $method != "connexion")) 
-        {
-
-           if(!isset($_SESSION["admin"]) || ($_SESSION["admin"] < 1)) //Vérifier si l'administrateur a déjà été connecté
-           {
-                $method = "ouvrirsession";
-                $controller->$method(); 
-           }
-           else
-           {
-                if( isset($path[2 + $i]) && ( ($path[2 + $i] == "")  ) and (get_class($controller) == "admin"))
-                {
-                     $param1 = $path[3 + $i];
-                     $controller->$method($param1);
-                }
-                else if(method_exists($controller,$method)) //si la méthode appelée existe
-                    $controller->$method();
-                else
-                {
-                    // La méthode appelée est non-valide. Fait afficher la page d'accueil
-                   include "controller/accueil.php";
-                   $controller = new accueil();
-                   $controller->renderTemplate(file_get_contents("public/html/public/accueil.html"));                      
-                }
-
-           }
-        }
-        else if(method_exists($controller,$method)) //si la méthode appelée existe
-        {
-            $controller->$method();
-        } 
-        else
-        {
-            $obj_controller->renderTemplate(file_get_contents(ERREUR));             
-        }
     }
-    else
-    {
-        $obj_controller->renderTemplate(file_get_contents(ERREUR));             
+
+    $projectFolder = "projet-annonce"; // Adjust if needed
+    $path = explode("/", trim($_SERVER["REQUEST_URI"], "/"));
+
+    if ($path[0] === $projectFolder) {
+        // If there’s a second segment, include it in the route key
+        $routeKey = isset($path[2]) ? $path[1] . '/' . $path[2] : ($path[1] ?? "accueil");
+    } else {
+        $routeKey = isset($path[1]) ? $path[0] . '/' . $path[1] : ($path[0] ?? "accueil");
     }
-    
+
+    // Check if route exists
+    if (array_key_exists($routeKey, $routes)) {
+        $controllerEntry = $routes[$routeKey];
+
+        // Handle controllers and methods
+        $parts = explode("@", $controllerEntry);
+        $controllerName = $parts[0];
+        $methodName = $parts[1] ?? "render"; // Default to render if not specified
+        $param = $parts[2] ?? null; // Optional third parameter for filtering
+
+        // Include controller file
+        $controllerFile = "controller/" . strtolower($controllerName) . ".php";
+        if (!file_exists($controllerFile)) {
+            die("Controller file not found: $controllerFile");
+        }
+        include_once $controllerFile;
+
+        // Instantiate the controller
+        if (!class_exists($controllerName)) {
+            die("Controller class not found: $controllerName");
+        }
+        $controller = new $controllerName();
+
+        // Call the method if it exists
+        if (method_exists($controller, $methodName)) {
+            if ($param) {
+                $controller->$methodName($param); // If there's a third param (like 'offre')
+            } else {
+                $controller->$methodName();
+            }
+        } else {
+            die("Method '$methodName' does not exist in controller '$controllerName'");
+        }
+    } else {
+        include "controller/accueil.php";
+        $controller = new accueil();
+        $controller->render();
+    }

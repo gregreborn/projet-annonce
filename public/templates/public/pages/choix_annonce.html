@@ -1,33 +1,10 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Publier une Annonce</title>
-    <link rel="stylesheet" href="/assets/css/base.css">
-    <link rel="stylesheet" href="/assets/libs/foundation/css/foundation.min.css">
-</head>
-<body>
-    <header>
-        {{> entete }}
-    </header>
-    
-    <main class="grid-container">
-        <h1 class="text-center">Publier une Annonce</h1>
-        <p class="text-center">Choisissez le type d'annonce que vous souhaitez publier :</p>
-        
-        <div class="grid-x grid-margin-x align-center">
-            <div class="cell small-12 medium-6">
-                <a href="soumission_offre.html" class="button expanded">J'OFFRE</a>
-            </div>
-            <div class="cell small-12 medium-6">
-                <a href="soumission_besoin.html" class="button hollow expanded">J'AI BESOIN</a>
-            </div>
-        </div>
-    </main>
-    
-    <footer>
-        {{> footer }}
-    </footer>
-</body>
-</html>
+<h1 class="text-center">Publier une Annonce</h1>
+<p class="text-center">Choisissez le type d'annonce que vous souhaitez publier :</p>
+<div class="grid-x grid-margin-x align-center">
+    <div class="cell small-12 medium-6">
+        <a href="{{SERVER_ABSOLUTE_PATH}}/soumission_offre" class="button expanded">J'OFFRE</a>
+    </div>
+    <div class="cell small-12 medium-6">
+        <a href="{{SERVER_ABSOLUTE_PATH}}/soumission_besoin" class="button hollow expanded">J'AI BESOIN</a>
+    </div>
+</div>
