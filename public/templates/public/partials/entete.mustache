@@ -1,12 +1,41 @@
-<div class="site-header">
-    <div class="logo">
-        <h1>Gregory</h1>
-    </div>
-    <nav class="main-nav">
-        <ul>
-            <li><a href="{{SERVER_ABSOLUTE_PATH}}/accueil">Accueil</a></li>
-            <li><a href="{{SERVER_ABSOLUTE_PATH}}/annonces">Annonces</a></li>
-            <li><a href="{{SERVER_ABSOLUTE_PATH}}/choix_annonce">Publier une annonce</a></li>
-        </ul>
-    </nav>
-</div>
+<!-- Navigation en mobile (tab-bar) : cachée en grand écran -->
+<nav class="tab-bar hide-for-large-up">
+  <!-- Bouton hamburger à gauche -->
+  <section class="left-small">
+    <a class="left-off-canvas-toggle menu-icon" href="#">Menu</a>
+  </section>
+  <!-- Titre au milieu -->
+  <section class="middle tab-bar-section">
+    <h1 class="title">Gregory</h1>
+  </section>
+</nav>
+
+<!-- Navigation en desktop (top-bar) : visible en grand écran seulement -->
+<nav class="top-bar show-for-large-up" data-topbar>
+  <ul class="title-area">
+    <li class="name">
+      <h1><a href="#">Gregory</a></h1>
+    </li>
+    <!-- Icône hamburger inutile en desktop, donc on ne le met pas ici -->
+  </ul>
+  <section class="top-bar-section">
+    <ul class="right">
+      <li><a href="{{SERVER_ABSOLUTE_PATH}}/accueil">Accueil</a></li>
+      <li><a href="{{SERVER_ABSOLUTE_PATH}}/annonces">Annonces</a></li>
+      <li><a href="{{SERVER_ABSOLUTE_PATH}}/choix_annonce">Publier une annonce</a></li>
+      <!-- Ajoutez d’autres liens si nécessaire -->
+    </ul>
+  </section>
+</nav>
+
+<!-- Menu mobile (off-canvas) -->
+<aside class="left-off-canvas-menu">
+  <ul class="off-canvas-list">
+    <li><label>Gregory</label></li>
+    <li><a href="{{SERVER_ABSOLUTE_PATH}}/accueil">Accueil</a></li>
+    <li><a href="{{SERVER_ABSOLUTE_PATH}}/annonces">Annonces</a></li>
+    <li><a href="{{SERVER_ABSOLUTE_PATH}}/choix_annonce">Publier une annonce</a></li>
+    <li><a href="{{SERVER_ABSOLUTE_PATH}}/offre">J’offre</a></li>
+    <li><a href="{{SERVER_ABSOLUTE_PATH}}/besoin">J’ai besoin</a></li>
+  </ul>
+</aside>
