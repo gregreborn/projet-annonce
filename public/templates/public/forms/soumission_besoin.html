@@ -1,30 +1,38 @@
 <h1 class="text-center">Soumission d’un besoin</h1>
+
 <form method="POST" action="{{SERVER_ABSOLUTE_PATH}}/annonces/create" enctype="multipart/form-data">
-  <div>
+
+  <div class="form-group">
     <label for="nomOrganisme">Nom de l’organisme *</label>
     <input type="text" name="nomOrganisme" id="nomOrganisme" required>
+    <div id="nomOrganisme-error" class="error-text hidden"></div>
   </div>
-  <div>
+
+  <div class="form-group">
     <label for="nom">Nom *</label>
     <input type="text" name="nom" id="nom" required>
+    <div id="nom-error" class="error-text hidden"></div>
   </div>
-  <div>
+
+  <div class="form-group">
     <label for="prenom">Prénom *</label>
     <input type="text" name="prenom" id="prenom" required>
+    <div id="prenom-error" class="error-text hidden"></div>
   </div>
-  <div>
+
+  <div class="form-group">
     <label for="titre">Titre de l’annonce *</label>
     <input type="text" name="titre" id="titre" required>
+    <div id="titre-error" class="error-text hidden"></div>
   </div>
-  <div>
+
+  <div class="form-group">
     <label for="description">Description *</label>
     <textarea name="description" id="description" required></textarea>
+    <div id="description-error" class="error-text hidden"></div>
   </div>
-  <div>
-    <label for="courriel">Courriel *</label>
-    <input type="email" name="courriel" id="courriel" required>
-  </div>
-  <div>
+
+  <div class="form-group">
     <label for="telephone">Téléphone</label>
     <div class="phone-input-container">
       <input type="tel" id="telephone" name="telephone" placeholder="+1 5142243490">
@@ -36,57 +44,130 @@
       🇫🇷 France: <code>+33 612345678</code><br>
       🇧🇪 Belgique: <code>+32 472123456</code>
     </div>
-  </div>  
-  <div>
+    <div id="phone-error" class="error-text hidden"></div>
+  </div>
+  
+
+  <div class="form-group">
+    <label for="courriel">Courriel *</label>
+    <input type="email" name="courriel" id="courriel" required>
+    <div id="courriel-error" class="error-text hidden"></div>
+  </div>
+
+  <div class="form-group">
     <label for="site">Site Web</label>
-    <input type="url" name="site" id="site">
     <small>Veuillez entrer l'URL complète (ex: https://example.com).</small>
+    <input type="url" name="site" id="site">
   </div>
-  <div>
-    <label for="dateDeDebutPub">Date de début</label>
-    <input type="date" name="dateDeDebutPub" id="dateDeDebutPub">
+
+  <div class="form-group">
+    <label for="dateDeDebutPub">Date de début *</label>
+    <input type="date" name="dateDeDebutPub" id="dateDeDebutPub" required>
+    <div id="dateDeDebutPub-error" class="error-text hidden"></div>
   </div>
-  <div>
-    <label for="dateDeFinPub">Date de fin</label>
-    <input type="date" name="dateDeFinPub" id="dateDeFinPub">
+  
+  <div class="form-group">
+    <label for="dateDeFinPub">Date de fin *</label>
+    <input type="date" name="dateDeFinPub" id="dateDeFinPub" required>
+    <div id="dateDeFinPub-error" class="error-text hidden"></div>
   </div>
-  <div>
-    <label for="adresse">Adresse</label>
-    <input type="text" name="adresse" id="adresse">
+  
+  
+
+  <!-- New Country Field -->
+  <div class="form-group">
+    <label for="country">Pays *</label>
+    <select name="country" id="country" required>
+      <option value="CA" selected>Canada</option>
+      <option value="US">États-Unis</option>
+    </select>
+    <div id="country-error" class="error-text hidden"></div>
   </div>
-  <div>
-    <label for="ville">Ville</label>
-    <input type="text" name="ville" id="ville">
+
+  <div class="form-group">
+    <label for="adresse">Adresse *</label>
+    <div class="address-input-container">
+      <input type="text" name="adresse" id="adresse" placeholder="123 Rue Saint-Laurent" required>
+      <span class="tooltip-icon" onclick="toggleExample('adresse-example')">❓</span>
+    </div>
+    <div id="adresse-example" class="example hidden">
+      <strong>Exemples:</strong><br>
+      🇨🇦 Canada: <code>123 Rue Sainte-Catherine</code><br>
+      🇺🇸 USA: <code>456 Broadway Ave, Apt 12</code>
+    </div>
+    <div id="adresse-error" class="error-text hidden"></div>
   </div>
-  <div>
-    <label for="codePostal">Code postal</label>
-    <input type="text" name="codePostal" id="codePostal">
+
+  <div class="form-group">
+    <label for="ville">Ville *</label>
+    <div class="address-input-container">
+      <input type="text" name="ville" id="ville" placeholder="Montréal" required>
+      <span class="tooltip-icon" onclick="toggleExample('ville-example')">❓</span>
+    </div>
+    <div id="ville-example" class="example hidden">
+      <strong>Exemples:</strong><br>
+      🇨🇦 Canada: <code>Montréal</code><br>
+      🇺🇸 USA: <code>New York</code>
+    </div>
+    <div id="ville-error" class="error-text hidden"></div>
   </div>
-  <div>
-    <label for="province">Province</label>
-    <input type="text" name="province" id="province">
+
+  <div class="form-group">
+    <label for="province">Province / État *</label>
+    <div class="address-input-container">
+      <!-- Province field changed to a dropdown -->
+      <select name="province" id="province" required>
+        <!-- Options will be populated dynamically based on country selection -->
+      </select>
+      <span class="tooltip-icon" onclick="toggleExample('province-example')">❓</span>
+    </div>
+    <div id="province-example" class="example hidden">
+      <strong>Exemples:</strong><br>
+      🇨🇦 Canada: <code>QC, ON, BC</code><br>
+      🇺🇸 USA: <code>NY, CA, TX</code>
+    </div>
+    <div id="province-error" class="error-text hidden"></div>
   </div>
-  <div>
+
+  <div class="form-group">
+    <label for="codePostal">Code postal *</label>
+    <div class="address-input-container">
+      <input type="text" name="codePostal" id="codePostal" placeholder="H2X 1Y8" required>
+      <span class="tooltip-icon" onclick="toggleExample('codePostal-example')">❓</span>
+    </div>
+    <div id="codePostal-example" class="example hidden">
+      <strong>Exemples:</strong><br>
+      🇨🇦 Canada: <code>H2X 1Y8</code><br>
+      🇺🇸 USA: <code>10001</code>
+    </div>
+    <div id="codePostal-error" class="error-text hidden"></div>
+  </div>
+
+  <div class="form-group">
     <label for="mrc">MRC</label>
     <input type="text" name="mrc" id="mrc">
   </div>
 
-  <!-- Dropdown for category selection -->
-  <div>
+
+  <div class="form-group">
     <label for="categoriesId">Catégorie *</label>
     <select name="categoriesId" id="categoriesId" required>
-        <option value="">-- Sélectionner une catégorie --</option>
-        {{#categories}}
-          <option value="{{id}}">{{nom}}</option>
-        {{/categories}}
-      </select>      
+      <option value="">-- Sélectionner une catégorie --</option>
+      {{#categories}}
+        <option value="{{id}}">{{nom}}</option>
+      {{/categories}}
+    </select>
+    <div id="categoriesId-error" class="error-text hidden"></div>
   </div>
 
-  <div>
+  <div class="form-group">
     <label for="media">Joindre un fichier (image, vidéo ou PDF)</label>
     <input type="file" name="media[]" id="media" multiple>
   </div>
+
   <!-- Hidden field for type -->
   <input type="hidden" name="type" value="besoin">
+
   <button type="submit" class="button expanded">Soumettre le besoin</button>
+
 </form>

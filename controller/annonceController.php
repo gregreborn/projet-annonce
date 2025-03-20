@@ -16,6 +16,13 @@ class annonceController extends Controller {
         $data["SERVER_ABSOLUTE_PATH"] = SERVER_ABSOLUTE_PATH;
         $data["PUBLIC_ABSOLUTE_PATH"] = PUBLIC_ABSOLUTE_PATH;
 
+        // ✅ Pass flash message if available
+        if (isset($_SESSION["rcrcq_message"])) {
+            $data["flashMessage"] = $_SESSION["rcrcq_message"];
+            $data["flashError"] = $_SESSION["rcrcq_erreur"] == 1;
+            unset($_SESSION["rcrcq_message"], $_SESSION["rcrcq_erreur"]); // Clear after displaying
+        }
+
         switch ($section) {
             case 'forms':
                 $templateFile = HTML_PUBLIC_FORMS_FS . "/" . $template;
@@ -68,6 +75,7 @@ class annonceController extends Controller {
     // Validates form data.
     private function validateFormData($data) {
         $errors = [];
+        
         if (empty($data['nomOrganisme'])) $errors[] = ERR_ORGANISATION_REQUIRED;
         if (empty($data['nom'])) $errors[] = ERR_LAST_NAME_REQUIRED;
         if (empty($data['prenom'])) $errors[] = ERR_FIRST_NAME_REQUIRED;
@@ -79,9 +87,24 @@ class annonceController extends Controller {
         if (empty($data['ville'])) $errors[] = ERR_CITY_REQUIRED;
         if (empty($data['province'])) $errors[] = ERR_PROVINCE_REQUIRED;
         if (empty($data['codePostal'])) $errors[] = ERR_POSTAL_REQUIRED;
-        if (empty($data['categoriesId'])) {$errors[] = ERR_CATEGORY_REQUIRED;}
+        if (empty($data['categoriesId'])) $errors[] = ERR_CATEGORY_REQUIRED;
+    
+        // ✅ Date validation
+        $today = date("Y-m-d");
+    
+        if (!empty($data['dateDeDebutPub']) && $data['dateDeDebutPub'] < $today) {
+            $errors[] = "❌ La date de début ne peut pas être dans le passé.";
+        }
+    
+        if (!empty($data['dateDeFinPub']) && !empty($data['dateDeDebutPub'])) {
+            if ($data['dateDeFinPub'] <= $data['dateDeDebutPub']) {
+                $errors[] = "❌ La date de fin doit être après la date de début.";
+            }
+        }
+    
         return $errors;
     }
+    
 
     // Helper to set flash messages.
     private function setFlashMessage($message, $isError = false) {
@@ -94,7 +117,7 @@ class annonceController extends Controller {
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
             return $this->renderChoixAnnonce();
         }
-
+    
         $fields = [
             'nomOrganisme', 'nom', 'prenom', 'titre', 'description',
             'telephone', 'courriel', 'site', 'dateDeDebutPub', 'dateDeFinPub',
@@ -104,35 +127,41 @@ class annonceController extends Controller {
         foreach ($fields as $field) {
             $formData[$field] = trim($_POST[$field] ?? '');
         }
-        
-        // Automatically prepend http:// if a site URL is entered without a protocol
+    
+        // Ensure website URLs have HTTP/HTTPS
         if (!empty($formData['site']) && !preg_match('#^https?://#i', $formData['site'])) {
             $formData['site'] = 'http://' . $formData['site'];
         }
-        
-        // Include the type field from the form
+    
         $formData['type'] = $_POST['type'] ?? '';
-        
+    
+        // ✅ Server-side validation
         $errors = $this->validateFormData($formData);
         if (!empty($errors)) {
-            $this->setFlashMessage(implode("<br>", $errors), true);
-            return $this->renderChoixAnnonce();
+            // Instead of redirecting, re-render the form with errors
+            return $this->renderPage('forms', "soumission_offre.html", [
+                'categories' => Categories::getAllCategories(),
+                'formData' => $formData,
+                'errors' => $errors
+            ]);
         }
-        
+    
         $annonceId = Annonce::createAnnonce($formData);
-        error_log("Annonce ID: " . $annonceId);
-         if ($annonceId === -1) {
-            $this->setFlashMessage("❌ Failed to create the ad.", true);
-            return $this->renderChoixAnnonce();
+        if ($annonceId === -1) {
+            $this->setFlashMessage("❌ Échec de la création de l’annonce.", true);
+            return $this->renderFormOffre();
         }
-        
+    
+        // ✅ Handle file upload (if any)
         if (!empty($_FILES['media']['name'][0])) {
             $this->handleMediaUpload($_FILES['media'], $annonceId);
         }
-        $this->setFlashMessage("✅ Ad created successfully!");
+    
+        $this->setFlashMessage("✅ Annonce créée avec succès !");
         header("Location: " . SERVER_ABSOLUTE_PATH . "/annonces");
         exit();
     }
+    
     
     
 

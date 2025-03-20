@@ -32,4 +32,49 @@
     border-radius: 3px;
     font-family: monospace;
   }
-  
+  .hidden { display: none; }
+    .example-btn {
+      background: none;
+      border: none;
+      color: blue;
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 0.9em;
+      padding: 0;
+      margin-left: 10px;
+    }
+    .error-message {
+      color: red;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+/* Style pour les erreurs */
+.has-error input, .has-error textarea, .has-error select {
+  border: 2px solid red !important;
+  background-color: #ffe6e6;
+}
+
+.error-text {
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+/* Example Box Styling */
+.example {
+  background: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 5px;
+}
+
+.tooltip-icon {
+  cursor: pointer;
+  font-size: 1.2em;
+  margin-left: 5px;
+}
+
+.hidden {
+  display: none;
+}
+
