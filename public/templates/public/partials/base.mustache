@@ -4,59 +4,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{title}}</title>
-
-  <!-- Foundation 5 CSS -->
-  <link rel="stylesheet" href="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/foundation/css/foundation.min.css">
-
-  <!-- Votre CSS -->
   <link rel="stylesheet" href="{{PUBLIC_ABSOLUTE_PATH}}/assets/css/base.css">
-
-  <!-- Scripts (ex: PristineJS) -->
+  <link rel="stylesheet" href="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/foundation/css/foundation.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.min.css">
   <script src="https://cdn.jsdelivr.net/npm/pristinejs/dist/pristine.min.js"></script>
 </head>
 <body>
-
-  <!-- Off-canvas wrapper principal de Foundation 5 -->
-  <div class="off-canvas-wrap" data-offcanvas>
-    <div class="inner-wrap">
-
-      <!-- Inclusion du menu (entete) -->
-      {{> entete }}
-
-      <!-- Contenu principal -->
-      <section class="main-section">
-        {{#flashMessage}}
-          <div class="flash-message {{#flashError}}error{{/flashError}}">
-            {{{flashMessage}}}
-          </div>
-        {{/flashMessage}}
-
-        <main class="row">
-          {{{content}}}
-        </main>
-
-        <footer>
-          {{> footer }}
-        </footer>
-      </section>
-
-      <!-- Lien “exit-off-canvas” pour fermer le menu mobile en cliquant en dehors -->
-      <a class="exit-off-canvas"></a>
-    </div>
+  {{#flashMessage}}
+  <div class="flash-message {{#flashError}}error{{/flashError}}">
+    {{{flashMessage}}}
   </div>
-
+{{/flashMessage}}
+  <header>
+    {{> entete }}
+  </header>
+  
+  <main class="grid-container">
+    {{{content}}}
+  </main>
+  
+  <footer>
+    {{> footer }}
+  </footer>
+  
   {{> message }}
 
-  <!-- Foundation 5 JS -->
+  <p id="phoneError" class="error-message hidden">❌ Numéro de téléphone invalide.</p>
   <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/jquery.min.js"></script>
   <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/foundation/js/foundation.min.js"></script>
-
-  <!-- Autres scripts (ex: base.js, etc.) -->
+  <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/jquery-ui-1.11.4.custom/jquery-ui.js"></script>
+  <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/jquery.scrollTo.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
   <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/js/base.js"></script>
-
-  <!-- Initialisation de Foundation 5 -->
-  <script>
-    $(document).foundation();
-  </script>
 </body>
 </html>

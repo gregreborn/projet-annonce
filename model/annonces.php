@@ -2,13 +2,9 @@
 namespace model;
 require_once "model.php";
 
-/**
- * Modèle représentant les annonces.
- * Gère les opérations CRUD sur la table "annonces".
- */
 class Annonce extends Model
 {
-    // Nom de la table et colonnes utilisées
+    // Define the table name and columns to keep consistency
     protected static $table = "annonces";
     protected static $columns = [
         'nomOrganisme', 'nom', 'prenom', 'titre', 'description',
@@ -17,16 +13,14 @@ class Annonce extends Model
     ];
     
 
-    /**
-     * Crée une nouvelle annonce dans la base de données
-     */    
+    // ✅ Insert a new annonce
     public static function createAnnonce($data)
     {
         $cols = implode(", ", static::$columns);
         $placeholders = implode(", ", array_fill(0, count(static::$columns), "?"));
+   
         $query = "INSERT INTO " . static::$table . " ($cols) VALUES ($placeholders)";
-        
-        // Ordonne les données selon les colonnes définies
+        // Ensure the data is in the same order as the columns
         $orderedData =[];
         foreach (static::$columns as $col) {
             $orderedData[] = $data[$col] ?? null;
@@ -34,67 +28,50 @@ class Annonce extends Model
         return self::add($query, $orderedData);
     }
 
-    /**
-     * Récupère toutes les annonces
-     */
-    public static function getAllAnnonces()
+    // ✅ Retrieve all annonces
+   public static function getAllAnnonces()
     {
         return self::gets("SELECT * FROM " . static::$table);
     }
 
-     /**
-     * Récupère toutes les annonces avec le nom de la catégorie associée
-     */
+    // ✅ Retrieve all annonces with category details
     public static function getAllAnnoncesWithCategories()
     {
         return self::gets("SELECT a.*, c.nom as categorie FROM " . static::$table . " a JOIN categories c ON a.categoriesId = c.id");
     }
 
-    /**
-     * Récupère les 5 annonces les plus récentes
-     */
+    // ✅ recent annonces
     public static function recentAnnonces()
     {
         return self::gets("SELECT * FROM " . static::$table . " ORDER BY id DESC LIMIT 5");
     }
 
-    /**
-     * Récupère une annonce selon son ID
-     */
+    // ✅ Retrieve an annonce by ID
     public static function getAnnonceById($id)
     {
         return self::get("SELECT * FROM " . static::$table . " WHERE id = ?", [$id]);
     }
 
-
-    /**
-     * Récupère les annonces selon leur type ("offre" ou "besoin")
-     */    
+    // ✅ Retrieve annonces by type (offre or besoin)
     public static function getAnnoncesByType($type)
     {
         return self::gets("SELECT * FROM " . static::$table . " WHERE type = ?", [$type]);
     }
 
 
-    /**
-     * Récupère les annonces associées à une catégorie spécifique
-     */
+    // ✅ Retrieve annonces by category ID
     public static function getAnnoncesByCategoryId($categoryId)
     {
         return self::gets("SELECT * FROM " . static::$table . " WHERE categoriesId = ?", [$categoryId]);
     }
 
-    /**
-     * Compte le nombre d’annonces pour une catégorie spécifique
-     */
+    // ✅ count annonces by category ID
     public static function countAnnoncesByCategoryId($categoryId)
     {
         return self::get("SELECT COUNT(*) as total FROM " . static::$table . " WHERE categoriesId = ?", [$categoryId]);
     }
 
-    /**
-     * Met à jour une annonce existante selon son ID
-     */    
+    // ✅ Update an annonce
     public static function updateAnnonce($id, $data)
     {
         
@@ -110,9 +87,7 @@ class Annonce extends Model
         return self::update($query, $orderedData);
     }
 
-    /**
-     * Supprime une annonce selon son ID
-     */    
+    // ✅ Delete an annonce
     public static function deleteAnnonce($id)
     {
         return self::del("DELETE FROM " . static::$table . " WHERE id = ?", [$id]);

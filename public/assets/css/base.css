@@ -77,42 +77,4 @@
 .hidden {
   display: none;
 }
-/* Exemple : top-bar colorée */
-.top-bar {
-  background-color: #f04124; /* rouge-orangé */
-}
-.top-bar .menu > li > a {
-  color: #fff; /* texte blanc */
-}
-
-/* Couleur de la sidebar */
-.off-canvas {
-  background-color: #fefefe;
-  padding: 1rem;
-}
-
-/* Un style pour le logo ou le h2 dans la sidebar */
-.off-canvas .logo h2 {
-  color: #f04124;
-  margin-bottom: 1rem;
-}
-.menu-icon {
-  background-color: #f04124; /* ou la couleur que vous voulez */
-  color: #fff; /* si vous utilisez un caractère hamburger */
-  border: none;
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  position: relative;
-}
-
-.menu-icon::before {
-  content: "\2630"; /* Symbole hamburger (☰) */
-  position: absolute;
-  font-size: 1.5rem;
-  top: 8px; /* ajustez selon la taille du bouton */
-  left: 8px;
-}
-
-
 
