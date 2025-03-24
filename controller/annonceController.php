@@ -85,7 +85,6 @@ class annonceController extends Controller {
         if (!empty($data['telephone']) && !is_numeric($data['telephone'])) $errors[] = ERR_PHONE_NUMERIC;
         if (!empty($data['site']) && !filter_var($data['site'], FILTER_VALIDATE_URL)) $errors[] = ERR_INVALID_URL;
         if (empty($data['ville'])) $errors[] = ERR_CITY_REQUIRED;
-        if (empty($data['province'])) $errors[] = ERR_PROVINCE_REQUIRED;
         if (empty($data['codePostal'])) $errors[] = ERR_POSTAL_REQUIRED;
         if (empty($data['categoriesId'])) $errors[] = ERR_CATEGORY_REQUIRED;
     
@@ -121,7 +120,7 @@ class annonceController extends Controller {
         $fields = [
             'nomOrganisme', 'nom', 'prenom', 'titre', 'description',
             'telephone', 'courriel', 'site', 'dateDeDebutPub', 'dateDeFinPub',
-            'adresse', 'ville', 'province', 'codePostal', 'mrc', 'categoriesId'
+            'adresse', 'ville', 'codePostal', 'mrc', 'categoriesId'
         ];
         $formData = [];
         foreach ($fields as $field) {

@@ -1,4 +1,6 @@
-<h1 class="text-center">Soumission d’un besoin</h1>
+<div class="form-header">
+  <h1>Soumission d’un besoin</h1>
+</div>
 
 <form method="POST" action="{{SERVER_ABSOLUTE_PATH}}/annonces/create" enctype="multipart/form-data">
 
@@ -35,14 +37,7 @@
   <div class="form-group">
     <label for="telephone">Téléphone</label>
     <div class="phone-input-container">
-      <input type="tel" id="telephone" name="telephone" placeholder="+1 5142243490">
-      <span class="tooltip-icon" onclick="togglePhoneExample()">❓</span>
-    </div>
-    <div id="phone-example" class="phone-example hidden">
-      <strong>Exemples:</strong><br>
-      🇨🇦 Canada: <code>+1 5142243490</code><br>
-      🇫🇷 France: <code>+33 612345678</code><br>
-      🇧🇪 Belgique: <code>+32 472123456</code>
+      <input type="tel" id="telephone" name="telephone">
     </div>
     <div id="phone-error" class="error-text hidden"></div>
   </div>
@@ -72,17 +67,6 @@
     <div id="dateDeFinPub-error" class="error-text hidden"></div>
   </div>
   
-  
-
-  <!-- New Country Field -->
-  <div class="form-group">
-    <label for="country">Pays *</label>
-    <select name="country" id="country" required>
-      <option value="CA" selected>Canada</option>
-      <option value="US">États-Unis</option>
-    </select>
-    <div id="country-error" class="error-text hidden"></div>
-  </div>
 
   <div class="form-group">
     <label for="adresse">Adresse *</label>
@@ -93,7 +77,6 @@
     <div id="adresse-example" class="example hidden">
       <strong>Exemples:</strong><br>
       🇨🇦 Canada: <code>123 Rue Sainte-Catherine</code><br>
-      🇺🇸 USA: <code>456 Broadway Ave, Apt 12</code>
     </div>
     <div id="adresse-error" class="error-text hidden"></div>
   </div>
@@ -107,27 +90,10 @@
     <div id="ville-example" class="example hidden">
       <strong>Exemples:</strong><br>
       🇨🇦 Canada: <code>Montréal</code><br>
-      🇺🇸 USA: <code>New York</code>
     </div>
     <div id="ville-error" class="error-text hidden"></div>
   </div>
 
-  <div class="form-group">
-    <label for="province">Province / État *</label>
-    <div class="address-input-container">
-      <!-- Province field changed to a dropdown -->
-      <select name="province" id="province" required>
-        <!-- Options will be populated dynamically based on country selection -->
-      </select>
-      <span class="tooltip-icon" onclick="toggleExample('province-example')">❓</span>
-    </div>
-    <div id="province-example" class="example hidden">
-      <strong>Exemples:</strong><br>
-      🇨🇦 Canada: <code>QC, ON, BC</code><br>
-      🇺🇸 USA: <code>NY, CA, TX</code>
-    </div>
-    <div id="province-error" class="error-text hidden"></div>
-  </div>
 
   <div class="form-group">
     <label for="codePostal">Code postal *</label>
@@ -138,7 +104,6 @@
     <div id="codePostal-example" class="example hidden">
       <strong>Exemples:</strong><br>
       🇨🇦 Canada: <code>H2X 1Y8</code><br>
-      🇺🇸 USA: <code>10001</code>
     </div>
     <div id="codePostal-error" class="error-text hidden"></div>
   </div>
@@ -147,7 +112,6 @@
     <label for="mrc">MRC</label>
     <input type="text" name="mrc" id="mrc">
   </div>
-
 
   <div class="form-group">
     <label for="categoriesId">Catégorie *</label>

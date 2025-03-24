@@ -56,6 +56,5 @@
     define('ERR_PHONE_NUMERIC', 'Le numéro de téléphone doit être numérique.');
     define('ERR_INVALID_URL', 'URL du site web invalide.');
     define('ERR_CITY_REQUIRED', 'La ville est obligatoire.');
-    define('ERR_PROVINCE_REQUIRED', 'La province est obligatoire.');
     define('ERR_POSTAL_REQUIRED', 'Le code postal est obligatoire.');
     define('ERR_CATEGORY_REQUIRED', 'Veuillez sélectionner une catégorie.');

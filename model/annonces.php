@@ -9,7 +9,7 @@ class Annonce extends Model
     protected static $columns = [
         'nomOrganisme', 'nom', 'prenom', 'titre', 'description',
         'telephone', 'courriel', 'site', 'dateDeDebutPub', 'dateDeFinPub',
-        'adresse', 'ville', 'province', 'codePostal', 'mrc', 'type', 'categoriesId'
+        'adresse', 'ville', 'codePostal', 'mrc', 'type', 'categoriesId'
     ];
     
 

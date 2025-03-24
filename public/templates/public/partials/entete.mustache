@@ -1,12 +1,16 @@
-<div class="site-header">
-    <div class="logo">
-        <h1>Gregory</h1>
-    </div>
-    <nav class="main-nav">
-        <ul>
-            <li><a href="{{SERVER_ABSOLUTE_PATH}}/accueil">Accueil</a></li>
-            <li><a href="{{SERVER_ABSOLUTE_PATH}}/annonces">Annonces</a></li>
-            <li><a href="{{SERVER_ABSOLUTE_PATH}}/choix_annonce">Publier une annonce</a></li>
-        </ul>
-    </nav>
-</div>
+<!-- Mobile header with hamburger (visible on small screens only) -->
+<nav class="tab-bar show-for-small-only modern-header">
+  <section class="left-small">
+    <a class="left-off-canvas-toggle menu-icon" href="#"><span></span></a>
+  </section>
+  <section class="middle tab-bar-section">
+    <h1 class="title">MarketPlace</h1>
+  </section>
+</nav>
+
+<!-- Desktop header with logo only (visible on medium-up) -->
+<header class="site-header show-for-medium-up">
+  <div class="logo">
+    <h1>MarketPlace</h1>
+  </div>
+</header>

@@ -1,80 +1,284 @@
-.phone-input-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    position: relative;
-  }
-  
-  .tooltip-icon {
-    cursor: pointer;
-    font-size: 14px;
-    color: #007bff;
-  }
-  
-  .phone-example {
-    background: #f8f9fa;
-    border: 1px solid #ccc;
-    padding: 8px;
-    border-radius: 5px;
-    font-size: 0.9em;
-    margin-top: 5px;
-    display: none;
-    width: fit-content;
-  }
-  
-  .phone-example.hidden {
-    display: none;
-  }
-  
-  .phone-example code {
-    background: #eee;
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-family: monospace;
-  }
-  .hidden { display: none; }
-    .example-btn {
-      background: none;
-      border: none;
-      color: blue;
-      text-decoration: underline;
-      cursor: pointer;
-      font-size: 0.9em;
-      padding: 0;
-      margin-left: 10px;
-    }
-    .error-message {
-      color: red;
-      font-size: 0.9em;
-      margin-top: 5px;
-    }
-/* Style pour les erreurs */
-.has-error input, .has-error textarea, .has-error select {
-  border: 2px solid red !important;
-  background-color: #ffe6e6;
+/* ========================= */
+/*        CSS Variables      */
+/* ========================= */
+:root {
+  --bg-primary: #1e1e20;
+  --bg-secondary: #2a2b2d;
+  --bg-input: #2a2a2c;
+  --text-primary: #eaeaea;
+  --text-muted: #b0b0b0;
+  --border-color: #444;
+  --accent: #f25c05;
+  --accent-hover: #d14a00;
 }
 
-.error-text {
-  color: red;
-  font-size: 0.9rem;
-  margin-top: 5px;
-}
-
-/* Example Box Styling */
-.example {
-  background: #f0f0f0;
-  padding: 10px;
-  border-radius: 5px;
-  margin-top: 5px;
-}
-
-.tooltip-icon {
-  cursor: pointer;
-  font-size: 1.2em;
-  margin-left: 5px;
+/* ========================= */
+/*         Global Styles     */
+/* ========================= */
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
 }
 
 .hidden {
   display: none;
 }
 
+/* ========================= */
+/*        Phone Input        */
+/* ========================= */
+.phone-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.tooltip-icon {
+  cursor: pointer;
+  font-size: 1.2em;
+  color: var(--accent);
+  margin-left: 5px;
+}
+
+.phone-example {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  border-radius: 5px;
+  font-size: 0.9em;
+  margin-top: 5px;
+  display: none;
+  width: fit-content;
+  color: var(--text-primary);
+}
+
+.phone-example code {
+  background: #eee;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.example-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9em;
+  padding: 0;
+  margin-left: 10px;
+}
+
+/* ========================= */
+/*        Error States       */
+/* ========================= */
+.has-error input,
+.has-error textarea,
+.has-error select {
+  border: 2px solid red !important;
+  background-color: #ffe6e6;
+}
+
+.error-message,
+.error-text {
+  color: red;
+  font-size: 0.9em;
+  margin-top: 5px;
+}
+
+/* ========================= */
+/*      Example Box Style    */
+/* ========================= */
+.example {
+  background: var(--bg-input);
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  margin-top: 5px;
+  color: var(--text-primary);
+}
+
+/* ========================= */
+/*       Header Styles       */
+/* ========================= */
+.site-header,
+.modern-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: var(--bg-secondary);
+  color: var(--accent);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.site-header .logo h1,
+.tab-bar .title {
+  font-family: 'Inter', sans-serif;
+  color: var(--accent);
+}
+
+.site-header .logo h1:hover {
+  opacity: 0.85;
+  cursor: default;
+}
+
+/* ========================= */
+/*     Off-Canvas Styling    */
+/* ========================= */
+.off-canvas-wrap,
+.inner-wrap,
+main {
+  background-color: var(--bg-primary);
+}
+
+.off-canvas-wrap.move-right .left-off-canvas-menu {
+  display: block !important;
+  position: fixed;
+  width: 250px;
+  top: 80px;
+  bottom: 0;
+  left: 0;
+  overflow-y: auto;
+  transform: none !important;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  padding-top: 1rem;
+  z-index: 999;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) #1f1f1f;
+}
+
+.off-canvas-wrap.move-right .inner-wrap {
+  margin-left: 250px;
+  margin-top: 80px;
+  transform: none !important;
+}
+
+.off-canvas-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.off-canvas-list li {
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.2s ease-in-out;
+}
+
+.off-canvas-list li:hover {
+  background-color: #1f1f1f;
+}
+
+.off-canvas-list li a {
+  text-decoration: none;
+  color: var(--text-primary);
+  font-size: 1rem;
+  display: block;
+  transition: color 0.2s ease-in-out;
+}
+
+.off-canvas-list li a:hover {
+  color: var(--accent);
+}
+
+/* ========================= */
+/*      Main Content Area    */
+/* ========================= */
+.main-section {
+  max-width: 850px;
+  margin: 3rem auto;
+  padding: 2.5rem 2rem;
+  background-color: var(--bg-secondary);
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  color: var(--text-primary);
+}
+
+.main-section form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.main-section input,
+.main-section select,
+.main-section textarea {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.main-section input::placeholder,
+.main-section textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.main-section input:focus,
+.main-section textarea:focus,
+.main-section select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* Fix dropdown option visibility */
+.main-section select option {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.main-section select option:hover,
+.main-section select option:checked {
+  background-color: var(--accent);
+  color: #fff;
+}
+
+/* ========================= */
+/*         Buttons           */
+/* ========================= */
+.main-section .button {
+  background-color: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.main-section .button:hover {
+  background-color: var(--accent-hover);
+}
+
+/* ========================= */
+/*        Form Header        */
+/* ========================= */
+.form-header {
+  padding-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--accent);
+}
+
+.form-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
