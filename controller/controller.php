@@ -4,29 +4,30 @@ Mustache_Autoloader::register();
 use \model\model as model;
 
 
-//Classe parente fournissant des fonctions pouvant être utilisées par tous ses enfants
+/**
+ * Classe parente de tous les contrôleurs
+ * Fournit des méthodes génériques pour l'affichage et la gestion des vues, fichiers et messages
+ */
 class Controller
 {
-	  // Render a template string with Mustache
-	  function renderTemplate($_pageContent, $_data = []) {
-        // Load absolute paths from config.php
+ 	/**
+     * Rend un template HTML à l’aide de Mustache (sans base)
+     */
+	function renderTemplate($_pageContent, $_data = []) {
         $_data["PUBLIC_ABSOLUTE_PATH"] = PUBLIC_ABSOLUTE_PATH;
         $_data["SERVER_ABSOLUTE_PATH"] = SERVER_ABSOLUTE_PATH;
 
-        // Fetch session messages & info
         $_data["informations"] = self::getInformations();
         $message = self::getMessage();
         $_data["message"] = $message["message"] ?? "";
         $_data["erreur"] = $message["erreur"] ?? false;
 
-        // Define partials path (convert HTTP URL to file system path)
         $partialsPath = str_replace("http://localhost/projet-annonce", __DIR__ . "/..", HTML_PUBLIC_PARTIALS_FS);
 
         if (!is_dir($partialsPath)) {
             die("❌ ERROR: Partials directory not found: " . $partialsPath);
         }
 
-        // Check required partials exist
         $requiredPartials = ['entete', 'footer', 'message'];
         foreach ($requiredPartials as $partial) {
             $filePath = "$partialsPath/$partial.mustache";
@@ -35,7 +36,6 @@ class Controller
             }
         }
 
-        // Initialize Mustache engine with proper loaders
         $mustache = new Mustache_Engine([
             'cache' => __DIR__ . '/../cache/mustache',
             'loader' => new Mustache_Loader_StringLoader(),
@@ -49,8 +49,10 @@ class Controller
         }
     }
 
-    // Render content wrapped with the base layout
-    function renderWithBase($_content, $_data = [])
+	/**
+     * Rend une page HTML intégrée dans le template de base
+     */
+	function renderWithBase($_content, $_data = [])
 	{
 		// Make sure to pass in the absolute path variables!
 		$_data["PUBLIC_ABSOLUTE_PATH"] = PUBLIC_ABSOLUTE_PATH;
@@ -62,17 +64,11 @@ class Controller
 		}
 		$baseTemplate = file_get_contents($baseTemplatePath);
 
-		// Set default title if not provided.
-		if (!isset($_data['title'])) {
-			$_data['title'] = "Mon Site";
-		}
-
-		// Inject the content fragment.
+        // Définit un titre par défaut si aucun n’est fourni
+		if (!isset($_data['title'])) {$_data['title'] = "Mon Site";}
 		$_data['content'] = $_content;
-		// Optionally, set the current year.
 		$_data['currentYear'] = date('Y');
 
-		// Use the partials filesystem path
 		$partialsPath = HTML_PUBLIC_PARTIALS_FS;
 		if (!is_dir($partialsPath)) {
 			die("❌ ERROR: Partials directory not found: " . $partialsPath);

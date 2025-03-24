@@ -10,15 +10,19 @@
      * 3. Chaque page web doit posséder son contrôleur afin de définir sa méthode render() pour l'afficher
      * 4. Chaque page web doit avoir son nom entré dans le tableau $routes ainsi que son contrôleur correspondant et la méthode
     */
-	
+
+	// Chargement automatique des classes
     spl_autoload_register();
     include "controller/controller.php";
     include "repository/config.php";
 
     session_start();
 
-	  // Routes: URL => Controller@Method
-      $routes = array(
+    /**
+     * === DÉFINITION DES ROUTES ===
+     * Format : "url" => "NomDuContrôleur@nomMéthode[@paramètreOptionnel]"
+     */      
+    $routes = array(
         "accueil"           => "accueil@render",
         "annonces"          => "annonceController@getAllAnnonces",
         "annonces/create"   => "annonceController@createAnnonce", 
@@ -32,54 +36,54 @@
         "soumission_besoin" => "annonceController@renderFormBesoin",
     );
 
-    // Ensure trailing slash for consistency
+    // Traite l'URL pour extraire le chemin
     $path = strtolower($_SERVER["REQUEST_URI"]);
     if (substr($path, -1) != "/") {
         $path .= "/";
     }
 
-    $projectFolder = "projet-annonce"; // Adjust if needed
+    $projectFolder = "projet-annonce"; // Nom du dossier du projet
     $path = explode("/", trim($_SERVER["REQUEST_URI"], "/"));
 
+    // Détermine la clé de route à partir de l’URL
     if ($path[0] === $projectFolder) {
-        // If there’s a second segment, include it in the route key
         $routeKey = isset($path[2]) ? $path[1] . '/' . $path[2] : ($path[1] ?? "accueil");
     } else {
         $routeKey = isset($path[1]) ? $path[0] . '/' . $path[1] : ($path[0] ?? "accueil");
     }
 
-    // Check if route exists
+    // === RÉSOLUTION DE LA ROUTE ===
     if (array_key_exists($routeKey, $routes)) {
         $controllerEntry = $routes[$routeKey];
 
-        // Handle controllers and methods
+        // Décomposition : contrôleur, méthode, paramètre (optionnel)
         $parts = explode("@", $controllerEntry);
         $controllerName = $parts[0];
-        $methodName = $parts[1] ?? "render"; // Default to render if not specified
-        $param = $parts[2] ?? null; // Optional third parameter for filtering
+        $methodName = $parts[1] ?? "render"; // Méthode par défaut
+        $param = $parts[2] ?? null; // Paramètre optionnel
 
-        // Include controller file
+        // Chargement du fichier du contrôleur
         $controllerFile = "controller/" . strtolower($controllerName) . ".php";
         if (!file_exists($controllerFile)) {
-            die("Controller file not found: $controllerFile");
+            die("Fichier du contrôleur introuvable : $controllerFile");
         }
         include_once $controllerFile;
 
-        // Instantiate the controller
+        // Instanciation du contrôleur
         if (!class_exists($controllerName)) {
-            die("Controller class not found: $controllerName");
+            die("Classe du contrôleur introuvable : $controllerName");
         }
         $controller = new $controllerName();
 
-        // Call the method if it exists
+        // Appel de la méthode
         if (method_exists($controller, $methodName)) {
             if ($param) {
-                $controller->$methodName($param); // If there's a third param (like 'offre')
+                $controller->$methodName($param); 
             } else {
                 $controller->$methodName();
             }
         } else {
-            die("Method '$methodName' does not exist in controller '$controllerName'");
+            die("La méthode '$methodName' n'existe pas dans le contrôleur '$controllerName'");
         }
     } else {
         include "controller/accueil.php";

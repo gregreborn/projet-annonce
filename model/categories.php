@@ -2,13 +2,19 @@
 namespace model;
 require_once "model.php";
 
+/**
+ * Modèle représentant les catégories.
+ * Permet de gérer la table "categories" (CRUD).
+ */
 class Categories extends Model
 {
-   // centralized table name and columns definition
+    // Nom de la table et colonnes concernées
     protected static $table = "categories";
     protected static $columns = ['nom'];
 
-    // ✅ Create a new category
+    /**
+     * Crée une nouvelle catégorie
+     */
     public static function createCategory($nom)
     {
         $cols = implode(", ", static::$columns);
@@ -17,26 +23,36 @@ class Categories extends Model
         return self::add($query, [$nom]);
     }
 
-    // ✅ Retrieve all categories
+    /**
+     * Récupère toutes les catégories
+     */
     public static function getAllCategories()
     {
         return self::gets("SELECT * FROM " . static::$table);
     }
 
-    // ✅ Retrieve a category by ID
+    /**
+     * Récupère une catégorie selon son ID
+     */
     public static function getCategoryById($id)
     {
         return self::get("SELECT * FROM " . static::$table . " WHERE id = ?", [$id]);
     }
 
-    // ✅ Update a category
+
+    /**
+     * Met à jour une catégorie existante
+     */
     public static function updateCategory($id, $nom)
     {
         $query = "UPDATE " . static::$table . " SET nom = ? WHERE id = ?";
         return self::update($query, [$nom, $id]);
     }
 
-    // ✅ Delete a category
+    
+    /**
+     * Supprime une catégorie par ID
+     */
     public static function deleteCategory($id)
     {
         return self::del("DELETE FROM " . static::$table . " WHERE id = ?", [$id]);

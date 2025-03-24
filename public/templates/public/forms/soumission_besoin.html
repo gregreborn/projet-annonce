@@ -73,8 +73,6 @@
   </div>
   
   
-
-  <!-- New Country Field -->
   <div class="form-group">
     <label for="country">Pays *</label>
     <select name="country" id="country" required>
@@ -115,9 +113,9 @@
   <div class="form-group">
     <label for="province">Province / État *</label>
     <div class="address-input-container">
-      <!-- Province field changed to a dropdown -->
+      <!-- Le champ Province est devenu une liste déroulante -->
       <select name="province" id="province" required>
-        <!-- Options will be populated dynamically based on country selection -->
+      <!-- Les options seront renseignées dynamiquement en fonction de la sélection du pays -->      
       </select>
       <span class="tooltip-icon" onclick="toggleExample('province-example')">❓</span>
     </div>
@@ -165,7 +163,7 @@
     <input type="file" name="media[]" id="media" multiple>
   </div>
 
-  <!-- Hidden field for type -->
+  <!-- champ cache pour les types -->
   <input type="hidden" name="type" value="besoin">
 
   <button type="submit" class="button expanded">Soumettre le besoin</button>

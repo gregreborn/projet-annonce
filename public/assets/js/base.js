@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // 🛠️ Initialize PristineJS for each form
+    // Initialisation de PristineJS pour la validation du formulaire
     const pristine = new Pristine(form, {
       classTo: 'form-group',
       errorClass: 'has-error',
@@ -21,28 +21,27 @@ document.addEventListener("DOMContentLoaded", function () {
       errorTextClass: 'error-text'
     });
 
-    // 🔥 Disable native validation
-    form.setAttribute("novalidate", "true");
+    form.setAttribute("novalidate", "true"); // Désactive la validation HTML native
 
-    // ✅ Prevent form submission if validation fails
+    // Validation lors de la soumission du formulaire
     form.addEventListener("submit", function (e) {
       console.log("🚀 Vérification du formulaire avant soumission...");
       let isValid = pristine.validate();
 
       if (!isValid) {
         console.warn("❌ Formulaire invalide, soumission bloquée !");
-        e.preventDefault(); // ⛔ Block submission if invalid
+        e.preventDefault(); // Empêche l'envoi si le formulaire est invalide
       }
     });
 
-    // ✅ Validate fields on input change for real-time feedback
+    // Validation en temps réel sur les champs
     form.querySelectorAll("input, textarea, select").forEach(input => {
       input.addEventListener("input", function () {
         pristine.validate(input);
       });
     });
 
-    // ✅ Validation rules for date fields
+    // Règles spécifiques pour les dates de début et de fin
     const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
 
     const dateDebutInput = form.querySelector("#dateDeDebutPub");
@@ -50,12 +49,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (dateDebutInput) {
       pristine.addValidator(dateDebutInput, function (value) {
-        return value >= today; // Ensure start date is today or later
+        return value >= today; 
       }, "❌ La date de début ne peut pas être dans le passé.", 2, false);
 
       dateDebutInput.addEventListener("input", function () {
         pristine.validate(dateDebutInput);
-        pristine.validate(dateFinInput); // Revalidate the end date too
+        pristine.validate(dateFinInput); 
       });
     }
 
@@ -71,19 +70,19 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    // ✅ Add validation rules for required fields (updated to include country)
+    // Champs obligatoires à valider
     const requiredFields = ["nomOrganisme", "nom", "prenom", "titre", "description", "courriel", "country", "ville", "province", "codePostal", "categoriesId"];
 
     requiredFields.forEach(fieldId => {
       const input = form.querySelector(`#${fieldId}`);
       if (input) {
         pristine.addValidator(input, function (value) {
-          return value.trim() !== ""; // Field must not be empty
+          return value.trim() !== "";
         }, "Ce champ est requis.", 1, false);
       }
     });
 
-    // ✅ Field-specific validation rules
+    // Règles de validation personnalisées
     const fields = {
       codePostal: {
         selector: "#codePostal",
@@ -127,12 +126,12 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // ✅ Keep values after validation failure
+    // Revalide automatiquement si un précédent échec de soumission est détecté
     if (form.dataset.failedSubmission === "true") {
       pristine.validate();
     }
 
-    // ✅ Initialize intl-tel-input for all telephone input fields
+    // Initialisation de la bibliothèque intl-tel-input pour les champs téléphone
     const phoneInputs = document.querySelectorAll("input[type='tel']");
     phoneInputs.forEach(function (input) {
       const iti = window.intlTelInput(input, {
@@ -146,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
       });
-      // Update country based on dial code
+
       const countryData = window.intlTelInputGlobals.getCountryData();
       input.addEventListener("input", function () {
         const value = input.value.trim();
@@ -164,7 +163,6 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         }
       });
-      // Validate phone number on form submission
       input.closest("form")?.addEventListener("submit", function (event) {
         const phoneVal = input.value.trim();
         if (phoneVal !== "") {
@@ -172,13 +170,13 @@ document.addEventListener("DOMContentLoaded", function () {
             event.preventDefault();
             document.getElementById("phone-error").classList.remove("hidden");
           } else {
-            input.value = iti.getNumber();
+            input.value = iti.getNumber();// Remplace par la version internationale
           }
         }
       });
     });
 
-    // ✅ Dynamic update for country and province dropdowns
+    // Mise à jour dynamique de la liste des provinces selon le pays sélectionné
     const countrySelect = form.querySelector("#country");
     const provinceSelect = form.querySelector("#province");
     if (countrySelect && provinceSelect) {
@@ -267,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       }
 
-      // Initial population – default to the country select's value or "CA"
+      // Initialisation avec la valeur actuelle du champ pays
       updateProvinceOptions(countrySelect.value || "CA");
 
       countrySelect.addEventListener("change", function () {
@@ -276,7 +274,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // ✅ Function to toggle examples
+  /**
+   * Affiche ou masque une boîte d’exemple selon l’ID fourni
+   */  
   window.toggleExample = function (exampleId) {
     const exampleBox = document.getElementById(exampleId);
     exampleBox.classList.toggle("hidden");

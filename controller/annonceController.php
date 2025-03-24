@@ -9,20 +9,22 @@ use model\categories;
 
 class annonceController extends Controller {
 
-    // Private helper to load a template from a section and render it using the base layout.
-    private function renderPage($section, $template, $data = [])
+    /**
+     * Rend une page HTML à partir d'un template spécifique.
+     * Le contenu est inséré dans une structure de base (layout).
+     */    private function renderPage($section, $template, $data = [])
     {
-        // Ensure the absolute path variables are present
         $data["SERVER_ABSOLUTE_PATH"] = SERVER_ABSOLUTE_PATH;
         $data["PUBLIC_ABSOLUTE_PATH"] = PUBLIC_ABSOLUTE_PATH;
 
-        // ✅ Pass flash message if available
+        // Ajoute un message flash s'il existe
         if (isset($_SESSION["rcrcq_message"])) {
             $data["flashMessage"] = $_SESSION["rcrcq_message"];
             $data["flashError"] = $_SESSION["rcrcq_erreur"] == 1;
             unset($_SESSION["rcrcq_message"], $_SESSION["rcrcq_erreur"]); // Clear after displaying
         }
 
+        // Détermine le bon dossier de template selon la section
         switch ($section) {
             case 'forms':
                 $templateFile = HTML_PUBLIC_FORMS_FS . "/" . $template;
@@ -41,7 +43,7 @@ class annonceController extends Controller {
         }
         
         $content = file_get_contents($templateFile);
-        // Pre‑render the content so that its tags (like {{SERVER_ABSOLUTE_PATH}}) are replaced.
+        // Remplace les balises personnalisées (comme {{VAR}}) avec Mustache
         $mustache = new Mustache_Engine([
             'loader' => new Mustache_Loader_StringLoader()
         ]);
@@ -52,28 +54,34 @@ class annonceController extends Controller {
     
     
 
-    // Render the ad type selection page (choix_annonce.html)
+    /**
+     * Affiche la page de sélection du type d’annonce.
+     */    
     function renderChoixAnnonce() {
         $this->renderPage('pages', "choix_annonce.html", []);
     }
 
-    // Render the "J’offre" ad submission form
+    /**
+    * Affiche le formulaire de soumission pour une annonce de type "offre".
+    */
     function renderFormOffre() {
         $categories = Categories::getAllCategories() ?: [];  // Ensure it's an array even if no categories exist
         $data = ['categories' => is_array($categories) ? $categories : []];
         $this->renderPage('forms', "soumission_offre.html", $data);
     }
 
-    // Render the "J’ai besoin" ad submission form
-    function renderFormBesoin() {
+    /**
+     * Affiche le formulaire de soumission pour une annonce de type "besoin".
+     */    function renderFormBesoin() {
         $categories = Categories::getAllCategories() ?: [];  // Ensure it's an array even if no categories exist
         $data = ['categories' => is_array($categories) ? $categories : []];
         $this->renderPage('forms', "soumission_besoin.html", $data);
     }
     
 
-    // Validates form data.
-    private function validateFormData($data) {
+    /**
+     * Valide les champs du formulaire de soumission.
+     */    private function validateFormData($data) {
         $errors = [];
         
         if (empty($data['nomOrganisme'])) $errors[] = ERR_ORGANISATION_REQUIRED;
@@ -89,7 +97,6 @@ class annonceController extends Controller {
         if (empty($data['codePostal'])) $errors[] = ERR_POSTAL_REQUIRED;
         if (empty($data['categoriesId'])) $errors[] = ERR_CATEGORY_REQUIRED;
     
-        // ✅ Date validation
         $today = date("Y-m-d");
     
         if (!empty($data['dateDeDebutPub']) && $data['dateDeDebutPub'] < $today) {
@@ -106,13 +113,18 @@ class annonceController extends Controller {
     }
     
 
-    // Helper to set flash messages.
+    /**
+     * Définit un message flash à afficher à l'utilisateur.
+     */    
     private function setFlashMessage($message, $isError = false) {
         $_SESSION["rcrcq_message"] = $message;
         $_SESSION["rcrcq_erreur"] = $isError ? 1 : 0;
     }
 
-    // Processes ad creation.
+    
+    /**
+     * Traite la création d'une annonce (POST).
+     */
     function createAnnonce() {
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
             return $this->renderChoixAnnonce();
@@ -128,17 +140,16 @@ class annonceController extends Controller {
             $formData[$field] = trim($_POST[$field] ?? '');
         }
     
-        // Ensure website URLs have HTTP/HTTPS
+        // Ajoute le protocole HTTP/HTTPS si manquant
         if (!empty($formData['site']) && !preg_match('#^https?://#i', $formData['site'])) {
             $formData['site'] = 'http://' . $formData['site'];
         }
     
         $formData['type'] = $_POST['type'] ?? '';
     
-        // ✅ Server-side validation
+        // Validation des données
         $errors = $this->validateFormData($formData);
         if (!empty($errors)) {
-            // Instead of redirecting, re-render the form with errors
             return $this->renderPage('forms', "soumission_offre.html", [
                 'categories' => Categories::getAllCategories(),
                 'formData' => $formData,
@@ -152,7 +163,7 @@ class annonceController extends Controller {
             return $this->renderFormOffre();
         }
     
-        // ✅ Handle file upload (if any)
+        // Traitement des fichiers média si fournis
         if (!empty($_FILES['media']['name'][0])) {
             $this->handleMediaUpload($_FILES['media'], $annonceId);
         }
@@ -165,7 +176,9 @@ class annonceController extends Controller {
     
     
 
-    // Handles media uploads.
+    /**
+     * Gère l’upload de fichiers média liés à l’annonce.
+     */    
     private function handleMediaUpload($files, $annonceId) {
         $allowedTypes = ["image/jpeg", "image/png", "image/gif", "video/mp4", "application/pdf"];
         $uploadDir = __DIR__ . "/../public/uploads/";
@@ -190,14 +203,18 @@ class annonceController extends Controller {
         }
     }
 
-    // Retrieves all ads and renders a listing page.
+    /**
+     * Récupère et affiche toutes les annonces.
+     */    
     function getAllAnnonces() {
         $annonces = Annonce::getAllAnnonces();
         $data = ["annonces" => $annonces];
         $this->renderPage('listings', "liste_offres.html", $data);
     }
 
-    // Optionally, filter ads by type (offre or besoin)
+    /**
+     * Récupère les annonces selon leur type ("offre" ou "besoin").
+     */    
     function getAnnoncesByType($type) {
         if (!in_array($type, ["offre", "besoin"])) {
             $type = "offre";
@@ -207,7 +224,9 @@ class annonceController extends Controller {
         $this->renderPage('listings', "liste_{$type}s.html", $data);
     }
 
-    // Deletes an ad.
+    /**
+     * Supprime une annonce et les fichiers média associés.
+     */    
     function deleteAnnonce($id) {
         Media::deleteMediaByAnnonceId($id);
         $deleted = Annonce::deleteAnnonce($id);
@@ -219,7 +238,10 @@ class annonceController extends Controller {
         header("Location: " . SERVER_ABSOLUTE_PATH . "/annonces");
         exit();
     }
-
+    
+    /**
+     * Point d’entrée par défaut du contrôleur : liste toutes les annonces.
+     */
     function render() {
         $this->getAllAnnonces();
     }
