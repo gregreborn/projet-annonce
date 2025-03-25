@@ -4,62 +4,61 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{title}}</title>
-  <link rel="stylesheet" href="{{PUBLIC_ABSOLUTE_PATH}}/assets/css/base.css">
+
+  <!-- Foundation CSS & Custom Styles -->
   <link rel="stylesheet" href="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/foundation/css/foundation.min.css">
+  <link rel="stylesheet" href="{{PUBLIC_ABSOLUTE_PATH}}/assets/css/base.css">
+
+  <!-- Fonts & Plugins -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.min.css" />
 </head>
 <body>
 
-  <!-- Off-canvas wrapper -->
-  <div class="off-canvas-wrap" data-offcanvas>
-    <div class="inner-wrap">
+  <!-- Responsive Nav (Top Bar for small/tablet, Sidebar for desktop) -->
+  <nav class="top-bar" data-topbar role="navigation">
+    <ul class="title-area">
+      <li class="name">
+        <h1><a href="#">MarketPlace</a></h1>
+      </li>
+      <li class="toggle-topbar menu-icon">
+        <a href="#"><span></span></a>
+      </li>
+    </ul>
 
-      <!-- Fixed header partial -->
-      {{> entete }}
+    <section class="top-bar-section show-for-medium-down">
+      <ul class="right">
+        {{> nav_items }}
+      </ul>
+    </section>
+  </nav>
 
-      <!-- Sidebar -->
-      <aside class="left-off-canvas-menu">
-        <ul class="off-canvas-list">
-          {{> nav_items }}
-        </ul>
-      </aside>
+  <div class="row">
+    <!-- Static Sidebar on Desktop -->
+    <aside class="large-3 columns show-for-large-up">
+      <ul class="off-canvas-list">
+        {{> nav_items }}
+      </ul>
+    </aside>
 
-      <!-- Main content -->
-      <main class="grid-container main-section">
-        {{{content}}}
-      </main>
-
-      <footer>
-        {{> footer }}
-      </footer>
-
-      <a class="exit-off-canvas show-for-small-only"></a>
-    </div>
+    <!-- Main content area -->
+    <section class="large-9 medium-12 small-12 columns main-section">
+      {{{content}}}
+    </section>
   </div>
 
+  <!-- Footer -->
+  <footer>
+    {{> footer }}
+  </footer>
+
+  <!-- Scripts -->
   <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/jquery.min.js"></script>
   <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/libs/foundation/js/foundation.min.js"></script>
-  <script>
-    function toggleSidebar() {
-      if (window.innerWidth >= 768) {
-        $('.off-canvas-wrap').addClass('move-right');
-      } else {
-        $('.off-canvas-wrap').removeClass('move-right');
-      }
-    }
-  
-    $(document).ready(function () {
-      $(document).foundation();
-      // Wait for layout to settle before toggling sidebar
-      setTimeout(toggleSidebar, 100);
-  
-      // Update sidebar on resize
-      $(window).on('resize', toggleSidebar);
-    });
-  </script> 
+  <script>$(document).foundation();</script>
+
   <script src="https://unpkg.com/pristinejs/dist/pristine.min.js"></script>
-  <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/js/base.js"></script> 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+  <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/js/base.js"></script>
 </body>
 </html>

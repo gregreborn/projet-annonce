@@ -1,16 +1,18 @@
-<!-- Mobile header with hamburger (visible on small screens only) -->
-<nav class="tab-bar show-for-small-only modern-header">
-  <section class="left-small">
-    <a class="left-off-canvas-toggle menu-icon" href="#"><span></span></a>
-  </section>
-  <section class="middle tab-bar-section">
-    <h1 class="title">MarketPlace</h1>
+<nav class="top-bar" data-topbar role="navigation">
+  <ul class="title-area">
+    <!-- Site title -->
+    <li class="name">
+      <h1><a href="#">MarketPlace</a></h1>
+    </li>
+
+    <!-- Hamburger menu (auto-collapses below medium) -->
+    <li class="toggle-topbar menu-icon"><a href="#"><span></span></a></li>
+  </ul>
+
+  <section class="top-bar-section">
+    <!-- Right side nav items -->
+    <ul class="right">
+      {{> nav_items }}
+    </ul>
   </section>
 </nav>
-
-<!-- Desktop header with logo only (visible on medium-up) -->
-<header class="site-header show-for-medium-up">
-  <div class="logo">
-    <h1>MarketPlace</h1>
-  </div>
-</header>
