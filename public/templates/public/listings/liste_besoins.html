@@ -1,0 +1,78 @@
+<h1>Besoins disponibles</h1>
+
+<!-- 🔘 Trigger for Location Modal -->
+<button type="button" class="button small" onclick="openLocationModal()">📍 Choisir une ville</button>
+
+<!-- 📍 Display active city/radius -->
+{{#selectedCity}}
+  <p style="margin-top: 0.5rem; color: var(--text-muted);">
+    📍 {{selectedCity}} {{#selectedRadius}}· dans un rayon de {{selectedRadius}}km{{/selectedRadius}}
+  </p>
+{{/selectedCity}}
+<form method="get" action="{{SERVER_ABSOLUTE_PATH}}/liste_besoins" style="margin-bottom: 1rem;">
+  <input type="text" name="q" placeholder="Rechercher..." value="{{query}}" />
+
+  <select name="cat" onchange="this.form.submit()">
+    <option value="">Toutes les catégories</option>
+    {{#categories}}
+      <option value="{{id}}" {{#selectedCategory}}{{#isSelected}}{{/isSelected}}{{/selectedCategory}}>{{nom}}</option>
+    {{/categories}}
+  </select>
+
+  <select name="sort" onchange="this.form.submit()">
+    <option value="">Trier par...</option>
+    <option value="recent" {{#isSortRecent}}selected{{/isSortRecent}}>Les plus récents</option>
+    <option value="alpha" {{#isSortAlpha}}selected{{/isSortAlpha}}>Titre A-Z</option>
+    <option value="ville" {{#isSortVille}}selected{{/isSortVille}}>Ville A-Z</option>
+  </select>
+</form>
+
+
+<div class="grid-x grid-margin-x small-up-2 medium-up-3 large-up-4">
+
+{{#annonces}}
+  <div class="cell">
+    <a href="{{SERVER_ABSOLUTE_PATH}}/annonce/{{id}}" class="card" style="display: block; border-radius: 8px; overflow: hidden; background-color: var(--bg-secondary); color: inherit; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+      
+      {{#thumbnail}}
+        <img src="{{thumbnail}}" alt="{{titre}}" style="width: 100%; height: 180px; object-fit: cover;">
+      {{/thumbnail}}
+      {{^thumbnail}}
+        <div class="no-thumbnail-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M21 5h-3.2l-.83-1.66A1 1 0 0 0 16 3H8a1 1 0 0 0-.9.55L6.2 5H3a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1ZM12 17a4 4 0 1 1 4-4 4 4 0 0 1-4 4Z"/>
+          </svg>
+          <span>Aucune image</span>
+        </div>
+      {{/thumbnail}}
+
+      <div style="padding: 1rem;">
+        <h4 style="margin: 0; font-size: 1.1rem; color: var(--accent);">{{titre}}</h4>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">{{ville}}</p>
+      </div>
+    </a>
+  </div>
+{{/annonces}}
+
+<!-- 📍 Location Modal -->
+<div id="locationModal" style="display:none; position: fixed; z-index: 9999; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); justify-content: center; align-items: center;">
+  <div style="background: var(--bg-primary); padding: 2rem; border-radius: 12px; max-width: 400px; width: 90%;">
+    <h3 style="color: var(--accent); margin-top: 0;">Choisir une ville</h3>
+    <form method="GET" action="{{SERVER_ABSOLUTE_PATH}}/liste_besoins">
+      <input name="ville" type="text" placeholder="Ex: Joliette" required style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;" value="{{ville}}">
+      <select name="radius" style="width: 100%; padding: 0.5rem;">
+        <option value="">Choisir un rayon</option>
+        <option value="10" {{#selectedRadius10}}selected{{/selectedRadius10}}>10 km</option>
+        <option value="25" {{#selectedRadius25}}selected{{/selectedRadius25}}>25 km</option>
+        <option value="50" {{#selectedRadius50}}selected{{/selectedRadius50}}>50 km</option>
+        <option value="100" {{#selectedRadius100}}selected{{/selectedRadius100}}>100 km</option>
+      </select>
+      <div style="margin-top: 1rem; text-align: right;">
+        <button type="submit" class="button small">Appliquer</button>
+        <button type="button" class="button secondary small" onclick="closeLocationModal()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</div>

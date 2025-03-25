@@ -186,3 +186,74 @@ document.addEventListener("DOMContentLoaded", function () {
     exampleBox.classList.toggle("hidden");
   };
 });
+
+window.openLocationModal = function () {
+  document.getElementById('locationModal').style.display = 'flex';
+};
+
+window.closeLocationModal = function () {
+  document.getElementById('locationModal').style.display = 'none';
+};
+document.addEventListener("DOMContentLoaded", function () {
+  const villeInput = document.getElementById("ville");
+  const latInput = document.getElementById("latitude");
+  const lngInput = document.getElementById("longitude");
+
+  if (!villeInput || !latInput || !lngInput) return; // Exit if not on a form page
+
+  const apiKey = "156b165d3a394bd889cfedb033c12259"; // Replace with your actual key
+  let timeout = null;
+
+  const dropdown = document.createElement("ul");
+  dropdown.style.position = "absolute";
+  dropdown.style.zIndex = "9999";
+  dropdown.style.background = "#2a2a2c";
+  dropdown.style.border = "1px solid #444";
+  dropdown.style.width = villeInput.offsetWidth + "px";
+  dropdown.style.listStyle = "none";
+  dropdown.style.margin = "0";
+  dropdown.style.padding = "0";
+  dropdown.style.fontSize = "0.9rem";
+
+  villeInput.parentNode.appendChild(dropdown);
+
+  villeInput.addEventListener("input", function () {
+    clearTimeout(timeout);
+    const query = this.value;
+
+    if (!query) {
+      dropdown.innerHTML = "";
+      return;
+    }
+
+    timeout = setTimeout(() => {
+      fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&type=city&limit=5&filter=countrycode:ca&apiKey=${apiKey}`)
+        .then(response => response.json())
+        .then(result => {
+          dropdown.innerHTML = "";
+          result.features.forEach(city => {
+            const item = document.createElement("li");
+            item.textContent = city.properties.city || city.properties.name;
+            item.style.padding = "8px";
+            item.style.cursor = "pointer";
+
+            item.addEventListener("click", () => {
+              villeInput.value = city.properties.city || city.properties.name;
+              latInput.value = city.properties.lat;
+              lngInput.value = city.properties.lon;
+              dropdown.innerHTML = "";
+            });
+
+            dropdown.appendChild(item);
+          });
+        });
+    }, 300);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!dropdown.contains(e.target) && e.target !== villeInput) {
+      dropdown.innerHTML = "";
+    }
+  });
+});
+

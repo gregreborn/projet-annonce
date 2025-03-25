@@ -83,7 +83,9 @@
   <div class="form-group">
     <label for="ville">Ville *</label>
     <div class="address-input-container">
-      <input type="text" name="ville" id="ville" placeholder="Montréal" required>
+      <input type="text" id="ville" name="ville" required placeholder="Ex: Montréal">
+      <input type="hidden" name="latitude" id="latitude">
+      <input type="hidden" name="longitude" id="longitude">
       <span class="tooltip-icon" onclick="toggleExample('ville-example')">❓</span>
     </div>
     <div id="ville-example" class="example hidden">
@@ -129,7 +131,7 @@
 
   <!-- Hidden field for type -->
   <input type="hidden" name="type" value="offre">
-
+  
   <button type="submit" class="button expanded">Soumettre l’offre</button>
 
 </form>

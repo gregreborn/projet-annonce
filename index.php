@@ -39,6 +39,8 @@
     }
 
     $projectFolder = "projet-annonce"; // Adjust if needed
+    // Remove query string from URI (e.g., ?sort=alpha)
+    $_SERVER["REQUEST_URI"] = strtok($_SERVER["REQUEST_URI"], '?');
     $path = explode("/", trim($_SERVER["REQUEST_URI"], "/"));
 
     if ($path[0] === $projectFolder) {

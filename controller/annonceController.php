@@ -87,7 +87,9 @@ class annonceController extends Controller {
         if (empty($data['ville'])) $errors[] = ERR_CITY_REQUIRED;
         if (empty($data['codePostal'])) $errors[] = ERR_POSTAL_REQUIRED;
         if (empty($data['categoriesId'])) $errors[] = ERR_CATEGORY_REQUIRED;
-    
+        if (!is_numeric($data['latitude']) || !is_numeric($data['longitude'])) {
+            $errors[] = "❌ Les coordonnées GPS sont invalides.";
+        }        
         // ✅ Date validation
         $today = date("Y-m-d");
     
@@ -113,6 +115,7 @@ class annonceController extends Controller {
 
     // Processes ad creation.
     function createAnnonce() {
+        error_log("LAT: " . $_POST['latitude'] . ", LNG: " . $_POST['longitude']);
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
             return $this->renderChoixAnnonce();
         }
@@ -120,8 +123,10 @@ class annonceController extends Controller {
         $fields = [
             'nomOrganisme', 'nom', 'prenom', 'titre', 'description',
             'telephone', 'courriel', 'site', 'dateDeDebutPub', 'dateDeFinPub',
-            'adresse', 'ville', 'codePostal', 'mrc', 'categoriesId'
+            'adresse', 'ville', 'latitude', 'longitude', 'codePostal', 'mrc', 'categoriesId'
         ];
+        
+        
         $formData = [];
         foreach ($fields as $field) {
             $formData[$field] = trim($_POST[$field] ?? '');
@@ -196,15 +201,78 @@ class annonceController extends Controller {
         $this->renderPage('listings', "liste_offres.html", $data);
     }
 
-    // Optionally, filter ads by type (offre or besoin)
     function getAnnoncesByType($type) {
-        if (!in_array($type, ["offre", "besoin"])) {
-            $type = "offre";
+        $dbType = ($type === 'besoin') ? 'b' : 'o';
+    
+        $q = $_GET['q'] ?? null;
+        $sort = $_GET['sort'] ?? null;
+        $selectedCategory = $_GET['cat'] ?? null;
+        $ville = $_GET['ville'] ?? null;
+        $radius = $_GET['radius'] ?? null;
+    
+        if ($q || $selectedCategory) {
+            $annonces = Annonce::searchAnnoncesByTypeAndQuery($dbType, $q, $sort, $selectedCategory);
+        } else {
+            $annonces = Annonce::getAnnoncesWithFirstImageByTypeSorted($dbType, $sort);
         }
-        $annonces = Annonce::getAnnoncesByType($type);
-        $data = ["annonces" => $annonces];
-        $this->renderPage('listings', "liste_{$type}s.html", $data);
+    
+        if ($ville && $radius && isset($_GET['lat']) && isset($_GET['lng'])) {
+            $userLat = floatval($_GET['lat']);
+            $userLng = floatval($_GET['lng']);
+        
+            $annonces = array_filter($annonces, function ($a) use ($userLat, $userLng, $radius) {
+                if (!isset($a['latitude'], $a['longitude'])) return false;
+        
+                $lat = floatval($a['latitude']);
+                $lng = floatval($a['longitude']);
+        
+                $earthRadius = 6371; // in km
+                $dLat = deg2rad($lat - $userLat);
+                $dLng = deg2rad($lng - $userLng);
+        
+                $a = sin($dLat / 2) ** 2 + cos(deg2rad($userLat)) * cos(deg2rad($lat)) * sin($dLng / 2) ** 2;
+                $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+                $distance = $earthRadius * $c;
+        
+                return $distance <= $radius;
+            });
+        }
+        
+    
+        // Categories for filter dropdown
+        $categories = Categories::getAllCategories();
+        foreach ($categories as &$cat) {
+            $cat['isSelected'] = ($cat['id'] == $selectedCategory);
+        }
+    
+        $data = [
+            "annonces" => $annonces,
+            "query" => $q,
+            "sort" => $sort,
+            "categories" => $categories,
+            "selectedCategory" => $selectedCategory,
+            "selectedCity" => $ville,
+            "selectedRadius" => $radius,
+            "ville" => $ville,
+            "selectedLat" => $_GET['lat'] ?? null,   
+            "selectedLng" => $_GET['lng'] ?? null,      
+            "isSortRecent" => $sort === "recent",
+            "isSortAlpha" => $sort === "alpha",
+            "isSortVille" => $sort === "ville"
+        ];
+        
+        // Mark selected radius options for Mustache
+        foreach (['10', '25', '50', '100'] as $r) {
+            $data["selectedRadius$r"] = ($radius == $r);
+        }
+    
+        $template = ($type === 'besoin') ? "liste_besoins.html" : "liste_offres.html";
+        $this->renderPage('listings', $template, $data);
     }
+    
+    
+    
+    
 
     // Deletes an ad.
     function deleteAnnonce($id) {

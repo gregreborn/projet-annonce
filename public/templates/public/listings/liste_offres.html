@@ -1,0 +1,45 @@
+<h1>Offres disponibles</h1>
+
+<form method="get" action="{{SERVER_ABSOLUTE_PATH}}/liste_offres" style="margin-bottom: 1rem;">
+    <input type="text" name="q" placeholder="Rechercher..." value="{{query}}" />
+  
+    <select name="cat" onchange="this.form.submit()">
+      <option value="">Toutes les catégories</option>
+      {{#categories}}
+        <option value="{{id}}" {{#selectedCategory}}{{#isSelected}}{{/isSelected}}{{/selectedCategory}}>{{nom}}</option>
+      {{/categories}}
+    </select>
+  
+    <select name="sort" onchange="this.form.submit()">
+      <option value="">Trier par...</option>
+      <option value="recent" {{#isSortRecent}}selected{{/isSortRecent}}>Les plus récents</option>
+      <option value="alpha" {{#isSortAlpha}}selected{{/isSortAlpha}}>Titre A-Z</option>
+      <option value="ville" {{#isSortVille}}selected{{/isSortVille}}>Ville A-Z</option>
+    </select>
+  </form>
+
+<div class="grid-x grid-margin-x small-up-2 medium-up-3 large-up-4">
+  {{#annonces}}
+    <div class="cell">
+      <a href="{{SERVER_ABSOLUTE_PATH}}/annonce/{{id}}" class="card" style="display: block; border-radius: 8px; overflow: hidden; background-color: var(--bg-secondary); color: inherit; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+        
+        {{#thumbnail}}
+          <img src="{{thumbnail}}" alt="{{titre}}" style="width: 100%; height: 180px; object-fit: cover;">
+        {{/thumbnail}}
+        {{^thumbnail}}
+          <div class="no-thumbnail-placeholder">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M21 5h-3.2l-.83-1.66A1 1 0 0 0 16 3H8a1 1 0 0 0-.9.55L6.2 5H3a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1ZM12 17a4 4 0 1 1 4-4 4 4 0 0 1-4 4Z"/>
+              </svg>
+              <span>Aucune image</span>
+          </div>        
+        {{/thumbnail}}
+
+        <div style="padding: 1rem;">
+          <h4 style="margin: 0; font-size: 1.1rem; color: var(--accent);">{{titre}}</h4>
+          <p style="font-size: 0.9rem; color: var(--text-muted);">{{ville}}</p>
+        </div>
+      </a>
+    </div>
+  {{/annonces}}
+</div>

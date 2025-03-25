@@ -9,8 +9,11 @@ class Annonce extends Model
     protected static $columns = [
         'nomOrganisme', 'nom', 'prenom', 'titre', 'description',
         'telephone', 'courriel', 'site', 'dateDeDebutPub', 'dateDeFinPub',
-        'adresse', 'ville', 'codePostal', 'mrc', 'type', 'categoriesId'
+        'adresse', 'ville', 'latitude', 'longitude', 'codePostal', 'mrc',
+        'type', 'categoriesId'
     ];
+    
+    
     
 
     // ✅ Insert a new annonce
@@ -40,6 +43,75 @@ class Annonce extends Model
         return self::gets("SELECT a.*, c.nom as categorie FROM " . static::$table . " a JOIN categories c ON a.categoriesId = c.id");
     }
 
+    public static function getAnnoncesWithFirstImageByType($type)
+    {
+        $sql = "
+            SELECT a.*, c.nom AS categorie,
+                (SELECT m.fileUrl 
+                FROM media m 
+                WHERE m.annoncesId = a.id 
+                ORDER BY m.id ASC LIMIT 1) AS thumbnail
+            FROM annonces a
+            JOIN categories c ON a.categoriesId = c.id
+            WHERE a.type = ?
+        ";
+        return self::gets($sql, [$type]);
+    }
+
+    public static function getAnnoncesWithFirstImageByTypeSorted($type, $sort = null)
+    {
+        $order = "a.id DESC"; // default: recent
+        if ($sort === "alpha") $order = "a.titre ASC";
+        if ($sort === "ville") $order = "a.ville ASC";
+
+        $sql = "
+            SELECT a.*, c.nom AS categorie,
+            (SELECT m.fileUrl FROM media m WHERE m.annoncesId = a.id ORDER BY m.id ASC LIMIT 1) AS thumbnail
+            FROM annonces a
+            JOIN categories c ON a.categoriesId = c.id
+            WHERE a.type = ?
+            ORDER BY $order
+        ";
+        return self::gets($sql, [$type]);
+    }
+
+
+    public static function searchAnnoncesByTypeAndQuery($type, $q = null, $sort = null, $category = null)
+    {
+        $order = "a.id DESC";
+        if ($sort === "alpha") $order = "a.titre ASC";
+        if ($sort === "ville") $order = "a.ville ASC";
+    
+        $sql = "
+            SELECT a.*, c.nom AS categorie,
+            (SELECT m.fileUrl FROM media m WHERE m.annoncesId = a.id ORDER BY m.id ASC LIMIT 1) AS thumbnail
+            FROM annonces a
+            JOIN categories c ON a.categoriesId = c.id
+            WHERE a.type = ?
+        ";
+    
+        $params = [$type];
+    
+        if ($q) {
+            $sql .= " AND (a.titre LIKE ? OR a.ville LIKE ? OR a.description LIKE ?)";
+            $like = "%$q%";
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
+        }
+    
+        if ($category) {
+            $sql .= " AND a.categoriesId = ?";
+            $params[] = $category;
+        }
+    
+        $sql .= " ORDER BY $order";
+    
+        return self::gets($sql, $params);
+    }
+    
+    
+    
     // ✅ recent annonces
     public static function recentAnnonces()
     {
@@ -58,12 +130,17 @@ class Annonce extends Model
         return self::gets("SELECT * FROM " . static::$table . " WHERE type = ?", [$type]);
     }
 
-
+    public static function getAnnoncesByTypeWithCategory($type)
+    {
+        return self::gets("SELECT a.*, c.nom as categorie FROM annonces a JOIN categories c ON a.categoriesId = c.id WHERE a.type = ?", [$type]);
+    }
+    
     // ✅ Retrieve annonces by category ID
     public static function getAnnoncesByCategoryId($categoryId)
     {
         return self::gets("SELECT * FROM " . static::$table . " WHERE categoriesId = ?", [$categoryId]);
     }
+    
 
     // ✅ count annonces by category ID
     public static function countAnnoncesByCategoryId($categoryId)
