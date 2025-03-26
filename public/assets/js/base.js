@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ✅ Add validation rules for required fields (updated to include country)
-    const requiredFields = ["nomOrganisme", "nom", "prenom", "titre", "description", "courriel", "country", "ville", "province", "codePostal", "categoriesId"];
+    const requiredFields = ["nomOrganisme", "nom", "prenom", "titre", "description", "courriel", "LocaliteId", "categoriesId"];
 
     requiredFields.forEach(fieldId => {
       const input = form.querySelector(`#${fieldId}`);
@@ -85,31 +85,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ✅ Field-specific validation rules
     const fields = {
-      codePostal: {
-        selector: "#codePostal",
-        validate: function (value) {
-          const caPattern = /^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/; // Canada
-          const usPattern = /^\d{5}(-\d{4})?$/; // USA
-          return caPattern.test(value) || usPattern.test(value);
-        },
-        message: "Code postal invalide : utilisez le format canadien (A1A 1A1) ou américain (12345-6789)."
-      },
-      province: {
-        selector: "#province",
-        validate: function (value) {
-          const canadian = ["AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"];
-          const us = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"];
-          return canadian.includes(value.toUpperCase()) || us.includes(value.toUpperCase());
-        },
-        message: "Province/État invalide. Choisissez une option valide."
-      },
-      ville: {
-        selector: "#ville",
-        validate: function (value) {
-          return /^[A-Za-zÀ-ÿ' -]+$/.test(value);
-        },
-        message: "La ville ne doit contenir que des lettres et des espaces."
-      },
       adresse: {
         selector: "#adresse",
         validate: function (value) {
@@ -131,6 +106,26 @@ document.addEventListener("DOMContentLoaded", function () {
     if (form.dataset.failedSubmission === "true") {
       pristine.validate();
     }
+
+    // 🏙️ Auto-fill ville, mrc, and codePostal when a localité is selected
+    const localiteSelect = form.querySelector("#localiteId");
+    if (localiteSelect) {
+      localiteSelect.addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const ville = selectedOption.getAttribute("data-ville") || "";
+        const mrc = selectedOption.getAttribute("data-mrc") || "";
+        const codePostal = selectedOption.getAttribute("data-prefixe") || "";
+
+        const villeInput = document.getElementById("ville");
+        const mrcInput = document.getElementById("mrc");
+        const codePostalInput = document.getElementById("codePostal");
+
+        if (villeInput) villeInput.value = ville;
+        if (mrcInput) mrcInput.value = mrc;
+        if (codePostalInput) codePostalInput.value = codePostal;
+      });
+    }
+
 
     // ✅ Initialize intl-tel-input for all telephone input fields
     const phoneInputs = document.querySelectorAll("input[type='tel']");
@@ -185,75 +180,5 @@ document.addEventListener("DOMContentLoaded", function () {
     const exampleBox = document.getElementById(exampleId);
     exampleBox.classList.toggle("hidden");
   };
-});
-
-window.openLocationModal = function () {
-  document.getElementById('locationModal').style.display = 'flex';
-};
-
-window.closeLocationModal = function () {
-  document.getElementById('locationModal').style.display = 'none';
-};
-document.addEventListener("DOMContentLoaded", function () {
-  const villeInput = document.getElementById("ville");
-  const latInput = document.getElementById("latitude");
-  const lngInput = document.getElementById("longitude");
-
-  if (!villeInput || !latInput || !lngInput) return; // Exit if not on a form page
-
-  const apiKey = "156b165d3a394bd889cfedb033c12259"; // Replace with your actual key
-  let timeout = null;
-
-  const dropdown = document.createElement("ul");
-  dropdown.style.position = "absolute";
-  dropdown.style.zIndex = "9999";
-  dropdown.style.background = "#2a2a2c";
-  dropdown.style.border = "1px solid #444";
-  dropdown.style.width = villeInput.offsetWidth + "px";
-  dropdown.style.listStyle = "none";
-  dropdown.style.margin = "0";
-  dropdown.style.padding = "0";
-  dropdown.style.fontSize = "0.9rem";
-
-  villeInput.parentNode.appendChild(dropdown);
-
-  villeInput.addEventListener("input", function () {
-    clearTimeout(timeout);
-    const query = this.value;
-
-    if (!query) {
-      dropdown.innerHTML = "";
-      return;
-    }
-
-    timeout = setTimeout(() => {
-      fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&type=city&limit=5&filter=countrycode:ca&apiKey=${apiKey}`)
-        .then(response => response.json())
-        .then(result => {
-          dropdown.innerHTML = "";
-          result.features.forEach(city => {
-            const item = document.createElement("li");
-            item.textContent = city.properties.city || city.properties.name;
-            item.style.padding = "8px";
-            item.style.cursor = "pointer";
-
-            item.addEventListener("click", () => {
-              villeInput.value = city.properties.city || city.properties.name;
-              latInput.value = city.properties.lat;
-              lngInput.value = city.properties.lon;
-              dropdown.innerHTML = "";
-            });
-
-            dropdown.appendChild(item);
-          });
-        });
-    }, 300);
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!dropdown.contains(e.target) && e.target !== villeInput) {
-      dropdown.innerHTML = "";
-    }
-  });
 });
 

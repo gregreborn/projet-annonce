@@ -3,9 +3,12 @@ require_once "controller.php";
 require_once __DIR__ . "/../model/annonces.php";
 require_once __DIR__ . "/../model/media.php";
 require_once __DIR__ . "/../model/categories.php";
+require_once __DIR__ . "/../model/localites.php";
 use model\annonce;
 use model\media;
 use model\categories;
+use model\Localite;
+use model\localites;
 
 class annonceController extends Controller {
 
@@ -59,17 +62,31 @@ class annonceController extends Controller {
 
     // Render the "J’offre" ad submission form
     function renderFormOffre() {
-        $categories = Categories::getAllCategories() ?: [];  // Ensure it's an array even if no categories exist
-        $data = ['categories' => is_array($categories) ? $categories : []];
+        $categories = Categories::getAllCategories() ?: [];
+        $localites = Localite::getAll() ?: [];
+    
+        $data = [
+            'categories' => is_array($categories) ? $categories : [],
+            'localites' => is_array($localites) ? $localites : [],
+        ];
+    
         $this->renderPage('forms', "soumission_offre.html", $data);
     }
+    
 
     // Render the "J’ai besoin" ad submission form
     function renderFormBesoin() {
-        $categories = Categories::getAllCategories() ?: [];  // Ensure it's an array even if no categories exist
-        $data = ['categories' => is_array($categories) ? $categories : []];
+        $categories = Categories::getAllCategories() ?: [];
+        $localites = Localite::getAll() ?: [];
+    
+        $data = [
+            'categories' => is_array($categories) ? $categories : [],
+            'localites' => is_array($localites) ? $localites : [],
+        ];
+    
         $this->renderPage('forms', "soumission_besoin.html", $data);
     }
+    
     
 
     // Validates form data.
@@ -85,11 +102,7 @@ class annonceController extends Controller {
         if (!empty($data['telephone']) && !is_numeric($data['telephone'])) $errors[] = ERR_PHONE_NUMERIC;
         if (!empty($data['site']) && !filter_var($data['site'], FILTER_VALIDATE_URL)) $errors[] = ERR_INVALID_URL;
         if (empty($data['ville'])) $errors[] = ERR_CITY_REQUIRED;
-        if (empty($data['codePostal'])) $errors[] = ERR_POSTAL_REQUIRED;
         if (empty($data['categoriesId'])) $errors[] = ERR_CATEGORY_REQUIRED;
-        if (!is_numeric($data['latitude']) || !is_numeric($data['longitude'])) {
-            $errors[] = "❌ Les coordonnées GPS sont invalides.";
-        }        
         // ✅ Date validation
         $today = date("Y-m-d");
     
@@ -115,7 +128,6 @@ class annonceController extends Controller {
 
     // Processes ad creation.
     function createAnnonce() {
-        error_log("LAT: " . $_POST['latitude'] . ", LNG: " . $_POST['longitude']);
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
             return $this->renderChoixAnnonce();
         }
@@ -123,7 +135,7 @@ class annonceController extends Controller {
         $fields = [
             'nomOrganisme', 'nom', 'prenom', 'titre', 'description',
             'telephone', 'courriel', 'site', 'dateDeDebutPub', 'dateDeFinPub',
-            'adresse', 'ville', 'latitude', 'longitude', 'codePostal', 'mrc', 'categoriesId'
+            'adresse', 'ville', 'categoriesId','localiteId'
         ];
         
         
@@ -138,7 +150,20 @@ class annonceController extends Controller {
         }
     
         $formData['type'] = $_POST['type'] ?? '';
-    
+
+        // 🔥 Get the postal code prefix from ville
+        $localite = Localite::getById($formData['localiteId']);
+        if ($localite) {
+            $formData['ville'] = $localite['nom'];
+            $formData['mrc'] = $localite['mrc'];
+            $formData['codePostal'] = $localite['prefixe_postal'] ?? '';
+        } else {
+            $formData['ville'] = '';
+            $formData['mrc'] = '';
+            $formData['codePostal'] = '';
+        }
+
+            
         // ✅ Server-side validation
         $errors = $this->validateFormData($formData);
         if (!empty($errors)) {
@@ -208,7 +233,7 @@ class annonceController extends Controller {
         $sort = $_GET['sort'] ?? null;
         $selectedCategory = $_GET['cat'] ?? null;
         $ville = $_GET['ville'] ?? null;
-        $radius = $_GET['radius'] ?? null;
+        $radius = $_GET['radius'] ?? ($ville ? 10 : null);
     
         if ($q || $selectedCategory) {
             $annonces = Annonce::searchAnnoncesByTypeAndQuery($dbType, $q, $sort, $selectedCategory);
@@ -216,27 +241,46 @@ class annonceController extends Controller {
             $annonces = Annonce::getAnnoncesWithFirstImageByTypeSorted($dbType, $sort);
         }
     
-        if ($ville && $radius && isset($_GET['lat']) && isset($_GET['lng'])) {
-            $userLat = floatval($_GET['lat']);
-            $userLng = floatval($_GET['lng']);
+        if ($ville && $radius) {
+            $selectedLocalite = Localite::getByName($ville);
         
-            $annonces = array_filter($annonces, function ($a) use ($userLat, $userLng, $radius) {
-                if (!isset($a['latitude'], $a['longitude'])) return false;
+            if ($selectedLocalite) {
+                $userLat = floatval($selectedLocalite['latitude']);
+                $userLng = floatval($selectedLocalite['longitude']);
         
-                $lat = floatval($a['latitude']);
-                $lng = floatval($a['longitude']);
+                // Fetch lat/lng from joined localites
+                foreach ($annonces as &$a) {
+                    if (!isset($a['localiteId'])) {
+                        $a['withinRadius'] = false;
+                        continue;
+                    }
         
-                $earthRadius = 6371; // in km
-                $dLat = deg2rad($lat - $userLat);
-                $dLng = deg2rad($lng - $userLng);
+                    $annonceLocalite = Localite::getById($a['localiteId']);
         
-                $a = sin($dLat / 2) ** 2 + cos(deg2rad($userLat)) * cos(deg2rad($lat)) * sin($dLng / 2) ** 2;
-                $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-                $distance = $earthRadius * $c;
+                    if (!$annonceLocalite || !isset($annonceLocalite['latitude'], $annonceLocalite['longitude'])) {
+                        $a['withinRadius'] = false;
+                        continue;
+                    }
         
-                return $distance <= $radius;
-            });
+                    $lat = floatval($annonceLocalite['latitude']);
+                    $lng = floatval($annonceLocalite['longitude']);
+        
+                    $earthRadius = 6371; // in km
+                    $dLat = deg2rad($lat - $userLat);
+                    $dLng = deg2rad($lng - $userLng);
+        
+                    $calcA = sin($dLat / 2) ** 2 + cos(deg2rad($userLat)) * cos(deg2rad($lat)) * sin($dLng / 2) ** 2;
+                    $c = 2 * atan2(sqrt($calcA), sqrt(1 - $calcA));
+                    $distance = $earthRadius * $c;
+        
+                    $a['withinRadius'] = $distance <= $radius;
+                }
+        
+                // Keep only annonces within radius
+                $annonces = array_filter($annonces, fn($a) => $a['withinRadius'] ?? false);
+            }
         }
+        
         
     
         // Categories for filter dropdown
@@ -267,8 +311,15 @@ class annonceController extends Controller {
         }
     
         $template = ($type === 'besoin') ? "liste_besoins.html" : "liste_offres.html";
+        $localites = Localite::getAllLocalites();
+        foreach ($localites as &$loc) {
+            $loc['isSelected'] = ($ville && $ville === $loc['nom']);
+        }
+        
+        $data['localites'] = $localites;
+        
         $this->renderPage('listings', $template, $data);
-    }
+    } 
     
     
     

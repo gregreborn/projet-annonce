@@ -66,6 +66,22 @@
     <input type="date" name="dateDeFinPub" id="dateDeFinPub" required>
     <div id="dateDeFinPub-error" class="error-text hidden"></div>
   </div>
+
+  <div class="form-group">
+    <label for="localiteId">Localité *</label>
+    <select name="localiteId" id="localiteId" required>
+      <option value="">-- Sélectionner une localité --</option>
+      {{#localites}}
+        <option value="{{id}}" data-ville="{{nom}}" data-mrc="{{mrc}}" data-prefixe="{{prefixe_postal}}">{{nom}}</option>
+      {{/localites}}
+    </select>
+    <div id="localiteId-error" class="error-text hidden"></div>
+  </div>
+  
+  <!-- Champs cachés auto-remplis -->
+  <input type="hidden" name="ville" id="ville">
+  <input type="hidden" name="mrc" id="mrc">
+  <input type="hidden" name="codePostal" id="codePostal">  
   
 
   <div class="form-group">
@@ -79,38 +95,6 @@
       🇨🇦 Canada: <code>123 Rue Sainte-Catherine</code><br>
     </div>
     <div id="adresse-error" class="error-text hidden"></div>
-  </div>
-
-  <div class="form-group">
-    <label for="ville">Ville *</label>
-    <div class="address-input-container">
-      <input type="text" name="ville" id="ville" placeholder="Montréal" required>
-      <span class="tooltip-icon" onclick="toggleExample('ville-example')">❓</span>
-    </div>
-    <div id="ville-example" class="example hidden">
-      <strong>Exemples:</strong><br>
-      🇨🇦 Canada: <code>Montréal</code><br>
-    </div>
-    <div id="ville-error" class="error-text hidden"></div>
-  </div>
-
-
-  <div class="form-group">
-    <label for="codePostal">Code postal *</label>
-    <div class="address-input-container">
-      <input type="text" name="codePostal" id="codePostal" placeholder="H2X 1Y8" required>
-      <span class="tooltip-icon" onclick="toggleExample('codePostal-example')">❓</span>
-    </div>
-    <div id="codePostal-example" class="example hidden">
-      <strong>Exemples:</strong><br>
-      🇨🇦 Canada: <code>H2X 1Y8</code><br>
-    </div>
-    <div id="codePostal-error" class="error-text hidden"></div>
-  </div>
-
-  <div class="form-group">
-    <label for="mrc">MRC</label>
-    <input type="text" name="mrc" id="mrc">
   </div>
 
   <div class="form-group">
