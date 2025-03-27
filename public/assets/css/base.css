@@ -232,4 +232,94 @@ a:hover {
   fill: var(--text-muted);
   opacity: 0.6;
 }
+.media-preview img {
+  max-height: 300px;
+  object-fit: cover;
+}
+.carousel-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #000;
+  height: 400px;
+  margin-bottom: 1.5rem;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.4s ease-in-out;
+  height: 100%;
+}
+
+.carousel-slide {
+  min-width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+}
+
+.carousel-slide img,
+.carousel-slide video,
+.carousel-slide embed {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  z-index: 5;
+  font-size: 1.2rem;
+  transition: background 0.3s;
+}
+.carousel-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+.carousel-btn.prev-btn { left: 10px; }
+.carousel-btn.next-btn { right: 10px; }
+/* Ensure modal is above everything */
+.reveal-modal {
+  display: none;
+  position: fixed;
+  z-index: 1005;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  max-width: 600px;
+  margin: auto;
+  top: 10%;
+  left: 0;
+  right: 0;
+}
+
+.reveal-modal-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0,0,0,0.6);
+  z-index: 1000;
+  display: none;
+}
+
+.reveal {
+  z-index: 1005 !important;
+  background: #fff;
+  border-radius: 8px;
+}
+.selected-thumbnail {
+  outline: 3px solid #f26522;
+  border-radius: 6px;
+}
 

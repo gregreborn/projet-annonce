@@ -192,32 +192,49 @@ class annonceController extends Controller {
     }
     
     
-    
 
     // Handles media uploads.
     private function handleMediaUpload($files, $annonceId) {
         $allowedTypes = ["image/jpeg", "image/png", "image/gif", "video/mp4", "application/pdf"];
         $uploadDir = __DIR__ . "/../public/uploads/";
         $maxFileSize = 20 * 1024 * 1024;
-        foreach ($files['name'] as $key => $fileName) {
-            if ($files['error'][$key] === UPLOAD_ERR_OK) {
-                $fileTmpPath = $files['tmp_name'][$key];
-                $fileSize = $files['size'][$key];
+    
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+    
+        // 🔁 Loop through all files
+        $fileCount = count($files['name']);
+        $thumbnailName = $_POST['thumbnailName'] ?? null;
+        for ($i = 0; $i < $fileCount; $i++) {
+            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                $fileTmpPath = $files['tmp_name'][$i];
+                $fileName = $files['name'][$i];
+                $fileSize = $files['size'][$i];
                 $fileType = mime_content_type($fileTmpPath);
+    
                 if (!in_array($fileType, $allowedTypes)) {
                     continue;
                 }
+    
                 if ($fileSize > $maxFileSize) {
                     continue;
                 }
+    
                 $uniqueName = time() . "_" . basename($fileName);
                 $targetFilePath = $uploadDir . $uniqueName;
+                $publicUrl = SERVER_ABSOLUTE_PATH . "/public/uploads/" . $uniqueName;
+    
                 if (move_uploaded_file($fileTmpPath, $targetFilePath)) {
-                    Media::saveMedia($annonceId, $targetFilePath, SERVER_ABSOLUTE_PATH . "/public/uploads/" . $uniqueName, $fileType);
+                    $isThumbnail = ($fileName === $thumbnailName) ? '1' : '0';
+                    Media::saveMedia($annonceId, $targetFilePath, $publicUrl, $fileType, $isThumbnail);
                 }
             }
         }
     }
+    
+    
+    
 
     // Retrieves all ads and renders a listing page.
     function getAllAnnonces() {
@@ -320,23 +337,61 @@ class annonceController extends Controller {
         
         $this->renderPage('listings', $template, $data);
     } 
+
+    function viewAnnonce($id) {
+        $annonce = Annonce::getAnnonceById($id);
+        $media = Media::getMediaByAnnonceId($id);
+        $categorie = Categories::getCategoryById($annonce['categoriesId']);
+        $localite = Localite::getById($annonce['localiteId']);
     
-    
-    
+        if (!$annonce) {
+            return $this->renderPage('pages', '404.html');
+        }
+        foreach ($media as &$m) {
+            $type = $m['fileType'] ?? '';
+            $m['url'] = $m['fileUrl']; // ✅ needed for Mustache
+            $m['isImage'] = strpos($type, 'image/') === 0;
+            $m['isVideo'] = strpos($type, 'video/') === 0;
+            $m['isPDF']   = $type === 'application/pdf';
+        }  
+        $data = [
+            'annonce' => $annonce,
+            'media' => $media,
+            'categorie' => $categorie['nom'] ?? '',
+            'localite' => $localite,
+            'title' => $annonce['titre'],
+        ];
+              
+        
+        $this->renderPage('pages', 'annonce_detail.html', $data);
+    }
+        
     
 
     // Deletes an ad.
     function deleteAnnonce($id) {
-        Media::deleteMediaByAnnonceId($id);
-        $deleted = Annonce::deleteAnnonce($id);
-        if ($deleted) {
-            $_SESSION["rcrcq_message"] = "✅ Ad deleted successfully!";
-        } else {
-            $_SESSION["rcrcq_message"] = "❌ Failed to delete the ad.";
+        // Fetch media associated with the annonce
+        $mediaList = Media::getMediaByAnnonceId($id);
+    
+        // Delete physical files
+        foreach ($mediaList as $media) {
+            $filePath = $media['filePath'];
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
         }
-        header("Location: " . SERVER_ABSOLUTE_PATH . "/annonces");
-        exit();
+    
+        // Delete media entries from DB (if not already handled by foreign key ON DELETE CASCADE)
+        Media::deleteMediaByAnnonceId($id); // Optional if your DB handles it
+    
+        // Delete the annonce itself
+        Annonce::deleteAnnonce($id);
+    
+        // Redirect or render confirmation
+        header("Location: " . SERVER_ABSOLUTE_PATH . "/liste_offres");
+        exit;
     }
+    
 
     function render() {
         $this->getAllAnnonces();

@@ -1,3 +1,5 @@
+console.log("✅ base.js loaded!");
+
 document.addEventListener("DOMContentLoaded", function () {
   console.log("🔍 PristineJS chargé ?", typeof Pristine !== "undefined");
 
@@ -180,5 +182,41 @@ document.addEventListener("DOMContentLoaded", function () {
     const exampleBox = document.getElementById(exampleId);
     exampleBox.classList.toggle("hidden");
   };
+  
 });
+
+function initCarouselWhenReady() {
+  const track = document.querySelector('.carousel-track');
+  const slides = document.querySelectorAll('.carousel-slide');
+  const prevBtn = document.querySelector('.prev-btn');
+  const nextBtn = document.querySelector('.next-btn');
+
+  if (!track || slides.length <= 1 || !prevBtn || !nextBtn) {
+    return setTimeout(initCarouselWhenReady, 200);
+  }
+
+  console.log("✅ Carousel initialized with looping");
+
+  let currentIndex = 0;
+
+  function updateCarousel() {
+    const slideWidth = slides[0].clientWidth;
+    track.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
+  }
+
+  prevBtn.addEventListener("click", () => {
+    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+    updateCarousel();
+  });
+
+  nextBtn.addEventListener("click", () => {
+    currentIndex = (currentIndex + 1) % slides.length;
+    updateCarousel();
+  });
+
+  window.addEventListener("resize", updateCarousel);
+  updateCarousel();
+}
+
+window.addEventListener("load", initCarouselWhenReady);
 

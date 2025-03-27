@@ -84,6 +84,16 @@
             die("Method '$methodName' does not exist in controller '$controllerName'");
         }
     } else {
+        // 📍 Vérifie si c'est une page d'annonce individuelle
+        if (preg_match("#^/projet-annonce/annonce/(\d+)/?$#", $_SERVER['REQUEST_URI'], $matches)) {
+            $id = intval($matches[1]);
+            include_once "controller/annonceController.php";
+            $controller = new annonceController();
+            $controller->viewAnnonce($id);
+            exit;
+        }
+
+        // Sinon, retourne à l'accueil
         include "controller/accueil.php";
         $controller = new accueil();
         $controller->render();
