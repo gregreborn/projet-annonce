@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Image Uploader & Cropper</title>
+  <!-- Foundation CSS (5.5.1) -->
+  <link rel="stylesheet" href="assets/libs/foundation/css/foundation.min.css">
+  <!-- CropperJS CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <style>
+    /* Modal and layout styles */
+    #image-uploader-modal.reveal-modal {
+      width: 95% !important;
+      max-width: 1000px !important;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    #upload-container {
+      display: flex;
+      flex-direction: row;
+      margin-top: 20px;
+    }
+    #image-list-container {
+      width: 30%;
+      border-right: 1px solid #ccc;
+      padding-right: 10px;
+      overflow-y: auto;
+      max-height: 80vh;
+    }
+    #cropper-section {
+      width: 70%;
+      padding-left: 10px;
+      text-align: center;
+    }
+    .image-card {
+      margin-bottom: 10px;
+    }
+    .image-card img {
+      width: 100%;
+      display: block;
+    }
+    #cropper-image {
+      max-width: 100%;
+      max-height: 70vh;
+      display: block;
+      margin: auto;
+    }
+    #image-drop-zone {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+    }
+    #image-drop-zone.dragover {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Button to open the uploader modal -->
+  <button id="open-uploader" class="button">Open Image Uploader</button>
+
+  <!-- Modal Overlay for Image Uploader & Cropper -->
+  <div id="image-uploader-modal" class="reveal-modal" data-reveal aria-hidden="true" role="dialog">
+    <h3>Upload and Crop Images</h3>
+    <!-- Drop zone & hidden file input -->
+    <div id="image-drop-zone">
+      Drag &amp; Drop Images Here or Click to Select
+      <input type="file" id="image-uploader-input" multiple accept="image/*" style="display:none;">
+    </div>
+    <!-- Two-column layout: Left = image list, Right = cropping area -->
+    <div id="upload-container">
+      <div id="image-list-container">
+        <!-- Uploaded image cards will appear here -->
+      </div>
+      <div id="cropper-section">
+        <img id="cropper-image" src="" alt="Cropper Image">
+        <button id="confirm-crop" class="button success" style="margin-top: 10px;">Confirm Crop</button>
+      </div>
+    </div>
+    <button id="close-uploader" class="button alert" style="margin-top: 20px;">Close</button>
+  </div>
+  <div class="reveal-modal-bg" style="display:none;"></div>
+
+  <!-- JS Libraries -->
+  <script src="assets/libs/jquery.min.js"></script>
+  <script src="assets/libs/foundation/js/foundation.min.js"></script>
+  <!-- CropperJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <!-- Initialize Foundation -->
+  <script>
+    $(document).foundation();
+    $('#image-uploader-modal').foundation();
+  </script>
+
+  <!-- Load our ImageUploader plugin -->
+  <script src="assets/js/plugins/imageUploader/imageUploader.js"></script>
+  <script>
+    // Initialize the uploader
+    ImageUploader.init();
+
+    // Clicking the drop zone triggers the file input
+    document.getElementById('image-drop-zone').addEventListener('click', function () {
+      document.getElementById('image-uploader-input').click();
+    });
+
+    // Open modal on button click
+    document.getElementById('open-uploader').addEventListener('click', function () {
+      $('#image-uploader-modal').foundation('reveal', 'open');
+    });
+
+    // Close modal on button click
+    document.getElementById('close-uploader').addEventListener('click', function () {
+      $('#image-uploader-modal').foundation('reveal', 'close');
+    });
+  </script>
+</body>
+</html>
