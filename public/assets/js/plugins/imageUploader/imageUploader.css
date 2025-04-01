@@ -7,4 +7,173 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   }
+   /* Modal and layout styles */
+   #image-uploader-modal.reveal-modal {
+    width: 95% !important;
+    max-width: 1000px !important;
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  #upload-container {
+    display: flex;
+    flex-direction: row;
+    margin-top: 20px;
+  }
+  /* Left side: grid of 4 square upload tiles */
+  #image-list-container {
+    width: 30%;
+    max-height: 400px;
+    overflow-y: auto;
+    border-right: 1px solid #ccc;
+    padding-right: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
+    min-height: 300px;
+    align-content: start;
+  }
+  .upload-tile {
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    position: relative; /* Needed for children to position correctly */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px dashed #ccc;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
   
+  
+  .upload-tile:hover {
+    border-color: #888; /* change border on hover */
+    background-color: #f9f9f9; /* subtle background change */
+  }
+  
+  .upload-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .upload-tile .placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #aaa;
+    font-size: 24px;
+    text-align: center;
+    pointer-events: none;
+  }
+  /* Right side: cropping area */
+  #cropper-section {
+    width: 70%;
+    padding-left: 10px;
+    text-align: center;
+  }
+  #cropper-image {
+    max-width: 100%;
+    max-height: 70vh;
+    display: block;
+    margin: auto;
+  }
+  /* Dragover style */
+  #image-list-container.dragover {
+    background-color: #f0f0f0;
+  }
+  .remove-btn {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;  /* Makes it round */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+  
+  .remove-btn:hover {
+    background: rgba(255, 0, 0, 0.8); /* changes background to red on hover */
+    transform: scale(1.1);
+  }
+  #cropper-placeholder {
+    font-size: 18px;
+    color: #aaa;
+    padding: 20px;
+    text-align: center;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .button {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .button:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+  }
+  /* Minimalist Modal Overlay for Foundation Reveal */
+#image-uploader-modal.reveal-modal {
+  width: 95% !important;
+  max-width: 1000px !important;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-20px);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* When the modal is open, Foundation Reveal adds .open */
+#image-uploader-modal.open {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Optional: Style the background overlay (if you want to override Foundation’s default) */
+.reveal-modal-bg {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Optional: Style the close button (if using a custom one) */
+.modal-close,
+.close-reveal-modal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover,
+.close-reveal-modal:hover {
+  color: #333;
+}

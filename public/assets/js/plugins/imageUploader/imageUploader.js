@@ -4,7 +4,7 @@
   const MAX_FILE_SIZE_MB = 20;
   const MAX_WIDTH = 1200;
   const MAX_HEIGHT = 1200;
-  let images = []; // array to store image objects
+  let images = []; // store image objects in order (max 4)
   let activeImageIndex = null;
   let cropper = null;
 
@@ -43,49 +43,113 @@
     });
   }
 
-  // Update the left-side image list
+    // Update the left-side upload tiles (always 4 tiles)
   function updateImageList() {
     const listContainer = document.querySelector("#image-list-container");
-    listContainer.innerHTML = ""; // Clear previous content
-    images.forEach((imgObj, index) => {
-      const card = document.createElement("div");
-      card.classList.add("image-card");
-      card.style.border = activeImageIndex === index ? "2px solid blue" : "1px solid #ccc";
-      card.style.borderRadius = "8px";
-      card.style.padding = "5px";
-      card.style.margin = "5px";
-      card.style.cursor = "pointer";
+    listContainer.innerHTML = ""; // clear previous content
 
-      // Use the cropped preview if available; otherwise, show the original processed preview
-      const previewURL = imgObj.croppedURL ? imgObj.croppedURL : imgObj.previewURL;
-      const imageElem = document.createElement("img");
-      imageElem.src = previewURL;
-      imageElem.style.width = "100%";
-      imageElem.style.display = "block";
-      card.appendChild(imageElem);
+    // Create 4 tiles (indices 0 ... MAX_FILES-1)
+    for (let i = 0; i < MAX_FILES; i++) {
+      const tile = document.createElement("div");
+      tile.classList.add("upload-tile");
+      // Highlight active tile if applicable
+      tile.style.border = activeImageIndex === i ? "2px solid blue" : "1px dashed #ccc";
 
-      // When clicked, make this image active for cropping
-      card.addEventListener("click", () => {
-        setActiveImage(index);
-      });
-      listContainer.appendChild(card);
-    });
+      if (images[i]) {
+        // If an image exists at this slot, show its preview
+        const previewURL = images[i].croppedURL ? images[i].croppedURL : images[i].previewURL;
+        const imgElem = document.createElement("img");
+        imgElem.src = previewURL;
+        tile.appendChild(imgElem);
+
+        // Add remove button
+        const removeBtn = document.createElement("button");
+        removeBtn.innerHTML = "&times;"; // X character
+        removeBtn.classList.add("remove-btn");
+        // Style inline or via CSS class (positioned at top-right)
+        removeBtn.style.position = "absolute";
+        removeBtn.style.top = "2px";
+        removeBtn.style.right = "2px";
+        removeBtn.style.background = "rgba(255,255,255,0.8)";
+        removeBtn.style.border = "none";
+        removeBtn.style.cursor = "pointer";
+        removeBtn.style.fontSize = "16px";
+        removeBtn.style.lineHeight = "1";
+        removeBtn.style.padding = "0 4px";
+        
+        // Prevent tile click when remove is clicked
+        removeBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          removeImage(i);
+        });
+        tile.appendChild(removeBtn);
+
+        // Clicking an image tile sets it as active for cropping
+        tile.addEventListener("click", () => {
+          setActiveImage(i);
+        });
+      } else {
+        // Placeholder tile: show a plus icon and label
+        const placeholder = document.createElement("div");
+        placeholder.classList.add("placeholder");
+        placeholder.innerHTML = "&#43;<br><small>Add photo</small>";
+        tile.appendChild(placeholder);
+        // Clicking an empty tile triggers the file input
+        tile.addEventListener("click", () => {
+          document.getElementById("image-uploader-input").click();
+        });
+      }
+      listContainer.appendChild(tile);
+    }
   }
 
-  // Set the active image to be cropped
+  // New function to remove an image at a given index
+  function removeImage(index) {
+    // Remove the image from the array
+    images.splice(index, 1);
+    if (activeImageIndex === index) {
+      if (images.length > 0) {
+        activeImageIndex = 0;
+        setActiveImage(activeImageIndex);
+      } else {
+        activeImageIndex = null;
+        const cropperImage = document.getElementById("cropper-image");
+        const placeholder = document.getElementById("cropper-placeholder");
+        cropperImage.style.display = "none";
+        placeholder.style.display = "flex"; // Show the placeholder
+        if (cropper) {
+          cropper.destroy();
+          cropper = null;
+        }
+      }
+    } else if (activeImageIndex > index) {
+      activeImageIndex--;
+    }
+    updateImageList();
+  }
+
+  // Set the active image for cropping
   function setActiveImage(index) {
+    if (!images[index]) return; // no image there
     activeImageIndex = index;
-    updateImageList(); // Update selection highlight
-    const cropperImage = document.querySelector("#cropper-image");
-    // Always show the original processed image for cropping
+    updateImageList(); // update highlight
+  
+    const cropperImage = document.getElementById("cropper-image");
+    const placeholder = document.getElementById("cropper-placeholder");
+  
+    // Always use the original processed image for cropping
     cropperImage.src = images[index].previewURL;
+    
+    // Hide the placeholder and show the cropper image
+    placeholder.style.display = "none";
+    cropperImage.style.display = "block";
+    
     // Destroy previous cropper instance if it exists
     if (cropper) {
       cropper.destroy();
     }
-    // Initialize CropperJS on the image
     cropper = new Cropper(cropperImage, {
-      aspectRatio: 1, // For a square crop; adjust as needed
+      aspectRatio: 1, // square crop; adjust as needed
       viewMode: 1,
     });
   }
@@ -94,17 +158,13 @@
   function confirmCrop() {
     if (cropper && activeImageIndex !== null) {
       cropper.getCroppedCanvas().toBlob((blob) => {
-        // Create a URL for the cropped image
         const croppedURL = URL.createObjectURL(blob);
-        // Store the cropped version in the images array
         images[activeImageIndex].croppedBlob = blob;
         images[activeImageIndex].croppedURL = croppedURL;
-        // Update the image list with the new cropped preview
         updateImageList();
-        // Optionally, update the cropping area to show the cropped result
+        // Optionally update the cropper with the cropped version
         const cropperImage = document.querySelector("#cropper-image");
         cropperImage.src = croppedURL;
-        // Reinitialize CropperJS if the user wants to adjust further
         cropper.destroy();
         cropper = new Cropper(cropperImage, {
           aspectRatio: 1,
@@ -114,57 +174,63 @@
     }
   }
 
-  // Handle file uploads (from input or drag & drop)
+  // Handle file uploads (from file input or drop)
   function handleFiles(files) {
-    const fileArray = Array.from(files)
-      .filter((file) => file.type.startsWith("image/"))
-      .slice(0, MAX_FILES);
-    fileArray.forEach(async (file) => {
-      const processedBlob = await processImage(file);
-      const previewURL = URL.createObjectURL(processedBlob);
-      // Add image object to our array
-      images.push({
-        file: file,
-        processedBlob: processedBlob,
-        previewURL: previewURL,
-        croppedBlob: null,
-        croppedURL: null,
+    const fileArray = Array.from(files).filter((file) => file.type.startsWith("image/"));
+    // Only add files if there is room (max MAX_FILES)
+    for (let file of fileArray) {
+      if (images.length >= MAX_FILES) break;
+      processImage(file).then((processedBlob) => {
+        const previewURL = URL.createObjectURL(processedBlob);
+        images.push({
+          file: file,
+          processedBlob: processedBlob,
+          previewURL: previewURL,
+          croppedBlob: null,
+          croppedURL: null,
+        });
+        // If no active image yet, set the first one active
+        if (activeImageIndex === null) {
+          setActiveImage(0);
+        }
+        updateImageList();
       });
-      // If this is the first image, set it as active
-      if (activeImageIndex === null) {
-        setActiveImage(0);
-      }
-      updateImageList();
-    });
+    }
   }
 
   // Initialize the uploader: attach event listeners, etc.
   function initImageUploader(options = {}) {
     const modalSelector = options.modalSelector || "#image-uploader-modal";
-    const dropZoneSelector = options.dropZoneSelector || "#image-drop-zone";
     const fileInputSelector = options.fileInputSelector || "#image-uploader-input";
     const modalEl = document.querySelector(modalSelector);
-    const dropZone = document.querySelector(dropZoneSelector);
     const fileInput = document.querySelector(fileInputSelector);
-    if (!modalEl || !dropZone || !fileInput) {
+    const listContainer = document.querySelector("#image-list-container");
+    const saveChangesBtn = document.getElementById("save-changes");
+    if (saveChangesBtn) {
+      saveChangesBtn.addEventListener("click", finalizeSelection);
+    }
+
+    if (!modalEl || !fileInput || !listContainer) {
       console.error("ImageUploader: Missing required elements.");
       return;
     }
+    // File input change
     fileInput.addEventListener("change", function (e) {
       handleFiles(e.target.files);
-      fileInput.value = ""; // Reset for subsequent uploads
+      fileInput.value = ""; // reset for subsequent uploads
     });
-    dropZone.addEventListener("dragover", function (e) {
+    // Enable drag & drop on the left container (tiles area)
+    listContainer.addEventListener("dragover", function (e) {
       e.preventDefault();
-      dropZone.classList.add("dragover");
+      listContainer.classList.add("dragover");
     });
-    dropZone.addEventListener("dragleave", function (e) {
+    listContainer.addEventListener("dragleave", function (e) {
       e.preventDefault();
-      dropZone.classList.remove("dragover");
+      listContainer.classList.remove("dragover");
     });
-    dropZone.addEventListener("drop", function (e) {
+    listContainer.addEventListener("drop", function (e) {
       e.preventDefault();
-      dropZone.classList.remove("dragover");
+      listContainer.classList.remove("dragover");
       if (e.dataTransfer && e.dataTransfer.files) {
         handleFiles(e.dataTransfer.files);
       }
@@ -174,9 +240,36 @@
     if (confirmBtn) {
       confirmBtn.addEventListener("click", confirmCrop);
     }
+    updateImageList();
   }
+  function finalizeSelection() {
+    const finalData = {
+      images: images.map(img => ({
+        previewURL: img.previewURL,
+        croppedURL: img.croppedURL
+      })),
+      thumbnailIndex: activeImageIndex
+    };
+  
+    // For demonstration
+    console.log("Final images data:", finalData);
+  
+    // Example of storing in hidden form input (optional)
+    /*
+    const hiddenInput = document.createElement("input");
+    hiddenInput.type = "hidden";
+    hiddenInput.name = "uploadedImages";
+    hiddenInput.value = JSON.stringify(finalData);
+    document.querySelector("#my-form").appendChild(hiddenInput);
+    */
+  
+    // Close modal (if using Foundation Reveal)
+    $('#image-uploader-modal').foundation('reveal', 'close');
+  }
+  
+  
 
-  // Expose the uploader
+  // Expose our uploader globally
   window.ImageUploader = {
     init: initImageUploader,
   };
