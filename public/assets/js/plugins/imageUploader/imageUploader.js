@@ -8,6 +8,39 @@
   let activeImageIndex = null;
   let cropper = null;
 
+ /* Fonction pour injecter dynamiquement le HTML du modal */
+ function injectHTML() {
+  if (!document.getElementById("image-uploader-modal")) {
+    const modalHTML = `
+    <div id="image-uploader-modal" class="reveal-modal" data-reveal aria-hidden="true" role="dialog">
+      <div class="modal">
+        <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+        <h3>Télécharger et recadrer des images</h3>
+        <input type="file" id="image-uploader-input" multiple accept="image/*" style="display:none;">
+        <div id="upload-container">
+          <div id="image-list-container">
+            <!-- Les 4 tuiles d'upload seront insérées ici -->
+          </div>
+          <div id="cropper-section">
+            <div id="cropper-placeholder">Sélectionnez une image à recadrer</div>
+            <img id="cropper-image" src="" alt="Cropper Image" style="display:none;">
+          </div>
+        </div>
+        <div id="button-group" style="text-align: right; margin-top: 10px;">
+          <button id="confirm-crop" class="button success">Confirmer le recadrage</button>
+          <button id="save-changes" class="button success">Enregistrer les modifications</button>
+          <button id="close-uploader" class="button alert">Fermer</button>
+        </div>
+      </div>
+    </div>
+    <div class="reveal-modal-bg"></div>
+    `;
+    const container = document.createElement("div");
+    container.innerHTML = modalHTML;
+    document.body.appendChild(container);
+  }
+}
+
   // Process an image file (resize & optionally compress)
   function processImage(file) {
     return new Promise((resolve) => {
@@ -43,30 +76,36 @@
     });
   }
 
-    // Update the left-side upload tiles (always 4 tiles)
+  // Update the left-side upload tiles (always 4 tiles)
   function updateImageList() {
     const listContainer = document.querySelector("#image-list-container");
-    listContainer.innerHTML = ""; // clear previous content
-
-    // Create 4 tiles (indices 0 ... MAX_FILES-1)
-    for (let i = 0; i < MAX_FILES; i++) {
+    listContainer.innerHTML = ""; // Effacer le contenu précédent
+  
+    // Par défaut, sur PC, on affiche MAX_FILES tuiles
+    let numberOfTiles = MAX_FILES;
+    // Sur mobile/tablette (ex. largeur < 1024px), on affiche images.length + 1 (max MAX_FILES)
+    if (window.innerWidth < 1024) {
+      numberOfTiles = Math.min(images.length + 1, MAX_FILES);
+    }
+  
+    // Création des tuiles
+    for (let i = 0; i < numberOfTiles; i++) {
       const tile = document.createElement("div");
       tile.classList.add("upload-tile");
-      // Highlight active tile if applicable
+      // Mettre en évidence la tuile active (si applicable)
       tile.style.border = activeImageIndex === i ? "2px solid blue" : "1px dashed #ccc";
-
+  
       if (images[i]) {
-        // If an image exists at this slot, show its preview
+        // S'il y a une image à cet emplacement, afficher son aperçu (croppé si disponible)
         const previewURL = images[i].croppedURL ? images[i].croppedURL : images[i].previewURL;
         const imgElem = document.createElement("img");
         imgElem.src = previewURL;
         tile.appendChild(imgElem);
-
-        // Add remove button
+  
+        // Bouton de suppression
         const removeBtn = document.createElement("button");
-        removeBtn.innerHTML = "&times;"; // X character
+        removeBtn.innerHTML = "&times;";
         removeBtn.classList.add("remove-btn");
-        // Style inline or via CSS class (positioned at top-right)
         removeBtn.style.position = "absolute";
         removeBtn.style.top = "2px";
         removeBtn.style.right = "2px";
@@ -76,25 +115,54 @@
         removeBtn.style.fontSize = "16px";
         removeBtn.style.lineHeight = "1";
         removeBtn.style.padding = "0 4px";
-        
-        // Prevent tile click when remove is clicked
         removeBtn.addEventListener("click", function (e) {
           e.stopPropagation();
           removeImage(i);
         });
         tile.appendChild(removeBtn);
-
-        // Clicking an image tile sets it as active for cropping
+  
+        // Bouton "Définir comme miniature" (étoile)
+        const thumbnailBtn = document.createElement("button");
+        thumbnailBtn.innerHTML = "★";
+        thumbnailBtn.classList.add("thumbnail-btn");
+        thumbnailBtn.style.position = "absolute";
+        thumbnailBtn.style.bottom = "2px";
+        thumbnailBtn.style.right = "2px";
+        thumbnailBtn.style.background = "rgba(255,255,255,0.8)";
+        thumbnailBtn.style.border = "none";
+        thumbnailBtn.style.cursor = "pointer";
+        thumbnailBtn.style.fontSize = "16px";
+        thumbnailBtn.style.lineHeight = "1";
+        thumbnailBtn.style.padding = "0 4px";
+        thumbnailBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          // Marquer cette image comme miniature et réinitialiser les autres
+          images.forEach((img, idx) => {
+            img.isThumbnail = (idx === i);
+          });
+          updateImageList();
+          setActiveImage(i);
+        });
+        // Appliquer la couleur or uniquement pour la miniature sélectionnée
+        if (images[i].isThumbnail) {
+          tile.classList.add("active-thumbnail");
+          thumbnailBtn.style.color = "#f39c12";
+        } else {
+          thumbnailBtn.style.color = "#ccc";
+        }
+        tile.appendChild(thumbnailBtn);
+  
+        // Clic sur la tuile : la définir comme image active pour le recadrage
         tile.addEventListener("click", () => {
           setActiveImage(i);
         });
       } else {
-        // Placeholder tile: show a plus icon and label
+        // S'il n'y a pas d'image à cet emplacement, afficher un placeholder
         const placeholder = document.createElement("div");
         placeholder.classList.add("placeholder");
         placeholder.innerHTML = "&#43;<br><small>Add photo</small>";
         tile.appendChild(placeholder);
-        // Clicking an empty tile triggers the file input
+        // Clic sur le placeholder : déclencher le file input
         tile.addEventListener("click", () => {
           document.getElementById("image-uploader-input").click();
         });
@@ -102,10 +170,10 @@
       listContainer.appendChild(tile);
     }
   }
+  
 
-  // New function to remove an image at a given index
+  // Remove an image at a given index
   function removeImage(index) {
-    // Remove the image from the array
     images.splice(index, 1);
     if (activeImageIndex === index) {
       if (images.length > 0) {
@@ -116,7 +184,7 @@
         const cropperImage = document.getElementById("cropper-image");
         const placeholder = document.getElementById("cropper-placeholder");
         cropperImage.style.display = "none";
-        placeholder.style.display = "flex"; // Show the placeholder
+        placeholder.style.display = "flex";
         if (cropper) {
           cropper.destroy();
           cropper = null;
@@ -130,31 +198,27 @@
 
   // Set the active image for cropping
   function setActiveImage(index) {
-    if (!images[index]) return; // no image there
+    if (!images[index]) return;
     activeImageIndex = index;
-    updateImageList(); // update highlight
-  
+    updateImageList();
+
     const cropperImage = document.getElementById("cropper-image");
     const placeholder = document.getElementById("cropper-placeholder");
-  
-    // Always use the original processed image for cropping
     cropperImage.src = images[index].previewURL;
-    
-    // Hide the placeholder and show the cropper image
     placeholder.style.display = "none";
     cropperImage.style.display = "block";
-    
-    // Destroy previous cropper instance if it exists
     if (cropper) {
       cropper.destroy();
     }
+    // Force 1:1 aspect ratio if this image is the thumbnail; otherwise free crop
+    const aspectRatio = images[index].isThumbnail ? 1 : NaN;
     cropper = new Cropper(cropperImage, {
-      aspectRatio: 1, // square crop; adjust as needed
+      aspectRatio: aspectRatio,
       viewMode: 1,
     });
   }
 
-  // Confirm the crop for the active image
+  // Confirm crop for the active image
   function confirmCrop() {
     if (cropper && activeImageIndex !== null) {
       cropper.getCroppedCanvas().toBlob((blob) => {
@@ -162,34 +226,39 @@
         images[activeImageIndex].croppedBlob = blob;
         images[activeImageIndex].croppedURL = croppedURL;
         updateImageList();
-        // Optionally update the cropper with the cropped version
-        const cropperImage = document.querySelector("#cropper-image");
+        const cropperImage = document.getElementById("cropper-image");
         cropperImage.src = croppedURL;
         cropper.destroy();
+        // Reinitialize cropper with the same settings
+        const aspectRatio = images[activeImageIndex].isThumbnail ? 1 : NaN;
         cropper = new Cropper(cropperImage, {
-          aspectRatio: 1,
+          aspectRatio: aspectRatio,
           viewMode: 1,
         });
       }, "image/jpeg", 0.9);
     }
   }
 
-  // Handle file uploads (from file input or drop)
+  // Handle file uploads from input or drop
   function handleFiles(files) {
     const fileArray = Array.from(files).filter((file) => file.type.startsWith("image/"));
-    // Only add files if there is room (max MAX_FILES)
     for (let file of fileArray) {
       if (images.length >= MAX_FILES) break;
       processImage(file).then((processedBlob) => {
         const previewURL = URL.createObjectURL(processedBlob);
-        images.push({
+        const newImage = {
           file: file,
           processedBlob: processedBlob,
           previewURL: previewURL,
           croppedBlob: null,
           croppedURL: null,
-        });
-        // If no active image yet, set the first one active
+          isThumbnail: false
+        };
+        images.push(newImage);
+        // If no image is set as thumbnail, set the first one by default
+        if (!images.some(img => img.isThumbnail)) {
+          newImage.isThumbnail = true;
+        }
         if (activeImageIndex === null) {
           setActiveImage(0);
         }
@@ -198,28 +267,67 @@
     }
   }
 
-  // Initialize the uploader: attach event listeners, etc.
-  function initImageUploader(options = {}) {
-    const modalSelector = options.modalSelector || "#image-uploader-modal";
-    const fileInputSelector = options.fileInputSelector || "#image-uploader-input";
-    const modalEl = document.querySelector(modalSelector);
-    const fileInput = document.querySelector(fileInputSelector);
-    const listContainer = document.querySelector("#image-list-container");
+  // Finalize selection: for demonstration, log final data and close modal
+  function finalizeSelection() {
+    const finalData = {
+      images: images.map(img => ({
+        previewURL: img.previewURL,
+        croppedURL: img.croppedURL
+      })),
+      thumbnailIndex: activeImageIndex
+    };
+    console.log("Final images data:", finalData);
+    $('#image-uploader-modal').foundation('reveal', 'close');
+  }
+
+   // Initialiser le plugin et attacher les écouteurs
+   function initImageUploader(options = {}) {
+    // Injection dynamique du HTML si nécessaire
+    if (!document.getElementById("image-uploader-modal")) {
+      const modalHTML = `
+      <div id="image-uploader-modal" class="reveal-modal" data-reveal aria-hidden="true" role="dialog">
+        <div class="modal">
+          <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+          <h3>Télécharger et recadrer des images</h3>
+          <input type="file" id="image-uploader-input" multiple accept="image/*" style="display:none;">
+          <div id="upload-container">
+            <div id="image-list-container">
+              <!-- Les tuiles seront insérées ici -->
+            </div>
+            <div id="cropper-section">
+              <div id="cropper-placeholder">Sélectionnez une image à recadrer</div>
+              <img id="cropper-image" src="" alt="Cropper Image" style="display:none;">
+            </div>
+          </div>
+          <div id="button-group" style="text-align: right; margin-top: 10px;">
+            <button id="confirm-crop" class="button success">Confirmer le recadrage</button>
+            <button id="save-changes" class="button success">Enregistrer les modifications</button>
+            <button id="close-uploader" class="button alert">Fermer</button>
+          </div>
+        </div>
+      </div>
+      <div class="reveal-modal-bg"></div>
+      `;
+      const container = document.createElement("div");
+      container.innerHTML = modalHTML;
+      document.body.appendChild(container);
+    }
+  
+    const modalEl = document.getElementById("image-uploader-modal");
+    const fileInput = document.getElementById("image-uploader-input");
+    const listContainer = document.getElementById("image-list-container");
     const saveChangesBtn = document.getElementById("save-changes");
     if (saveChangesBtn) {
       saveChangesBtn.addEventListener("click", finalizeSelection);
     }
-
     if (!modalEl || !fileInput || !listContainer) {
       console.error("ImageUploader: Missing required elements.");
       return;
     }
-    // File input change
     fileInput.addEventListener("change", function (e) {
       handleFiles(e.target.files);
-      fileInput.value = ""; // reset for subsequent uploads
+      fileInput.value = "";
     });
-    // Enable drag & drop on the left container (tiles area)
     listContainer.addEventListener("dragover", function (e) {
       e.preventDefault();
       listContainer.classList.add("dragover");
@@ -235,41 +343,15 @@
         handleFiles(e.dataTransfer.files);
       }
     });
-    // Bind the confirm crop button
     const confirmBtn = document.querySelector("#confirm-crop");
     if (confirmBtn) {
       confirmBtn.addEventListener("click", confirmCrop);
     }
     updateImageList();
+    window.addEventListener("resize", updateImageList);
   }
-  function finalizeSelection() {
-    const finalData = {
-      images: images.map(img => ({
-        previewURL: img.previewURL,
-        croppedURL: img.croppedURL
-      })),
-      thumbnailIndex: activeImageIndex
-    };
-  
-    // For demonstration
-    console.log("Final images data:", finalData);
-  
-    // Example of storing in hidden form input (optional)
-    /*
-    const hiddenInput = document.createElement("input");
-    hiddenInput.type = "hidden";
-    hiddenInput.name = "uploadedImages";
-    hiddenInput.value = JSON.stringify(finalData);
-    document.querySelector("#my-form").appendChild(hiddenInput);
-    */
-  
-    // Close modal (if using Foundation Reveal)
-    $('#image-uploader-modal').foundation('reveal', 'close');
-  }
-  
-  
 
-  // Expose our uploader globally
+  // Expose the uploader globally
   window.ImageUploader = {
     init: initImageUploader,
   };

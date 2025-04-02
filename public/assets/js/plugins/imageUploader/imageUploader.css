@@ -70,10 +70,18 @@
   }
   /* Right side: cropping area */
   #cropper-section {
-    width: 70%;
-    padding-left: 10px;
-    text-align: center;
+    width: 100%;
+    padding-left: 0;
+    font-size: 1rem;
+  color: #555;
   }
+  .label {
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
   #cropper-image {
     max-width: 100%;
     max-height: 70vh;
@@ -107,11 +115,11 @@
     transform: scale(1.1);
   }
   #cropper-placeholder {
-    font-size: 18px;
-    color: #aaa;
-    padding: 20px;
-    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 300;
+    color: #888;
     border: 1px dashed #ccc;
+    padding: 20px;
     border-radius: 8px;
     height: 70vh;
     display: flex;
@@ -176,4 +184,189 @@
 .modal-close:hover,
 .close-reveal-modal:hover {
   color: #333;
+}
+/* Style for the thumbnail button (star icon) */
+.thumbnail-btn {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  color: #f39c12; /* golden color for the star */
+}
+
+.thumbnail-btn:hover {
+  background: rgba(255, 215, 0, 0.9);
+  transform: scale(1.1);
+}
+
+/* Highlight the tile chosen as thumbnail */
+.upload-tile.active-thumbnail {
+  border: 2px solid gold;
+}
+
+/* Optionally, if you want to override the default border for tiles when an image is marked as thumbnail */
+.upload-tile img {
+  border-radius: 8px;
+}
+.cropper-bg {
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+#image-uploader-modal {
+  font-family: 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+  color: #333;
+}
+#image-uploader-modal h3 {
+  font-size: 1.75rem;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Pour les écrans moyens (tablettes, max-width: 1024px) */
+@media (max-width: 1024px) {
+  #upload-container {
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 10px;
+  }
+
+  #image-list-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column; /* vertical stacking */
+    gap: 10px;
+    max-height: none;
+    height: auto;
+    overflow-y: visible;
+    padding-right: 0;
+    border-right: none;
+  }
+
+  .upload-tile {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    margin: 0;
+  }
+
+  #cropper-section {
+    width: 100%;
+    padding: 0;
+  }
+
+  #cropper-placeholder {
+    height: auto;
+    min-height: 300px;
+  }
+
+  #cropper-image {
+    max-height: 50vh;
+  }
+  #button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+    width: 100%;
+  }
+
+  .button {
+    width: 100%;
+    font-size: 16px;
+    padding: 12px 18px;
+    text-align: center;
+  }
+
+  #close-uploader {
+    background-color: #e74c3c; /* red */
+  }
+
+  #close-uploader:hover {
+    background-color: #c0392b;
+  }
+}
+
+
+/* Pour les petits écrans (mobiles, max-width: 480px) */
+@media (max-height: 768px) {
+  h3 {
+    font-size: 20px;
+    text-align: center;
+  }
+  /* On passe à une seule colonne pour tout l'upload */
+  #upload-container {
+    flex-direction: column;
+  }
+  /* Ajuster la grille pour les tuiles : une colonne */
+  #image-list-container {
+    width: 100%;
+    grid-template-columns: 1fr;
+    max-height: none;
+    height: auto;
+    overflow-y: visible;
+    padding-right: 0;
+  }
+  .image-preview-container img {
+    max-width: 100%;
+    height: auto;
+    flex-shrink: 1;
+  }
+  #image-uploader-modal.reveal-modal {
+    width: 100% !important;
+    height: 100vh;
+    max-height: 95vh;
+    overflow-y: auto;
+    padding: 1rem;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Réduire la taille des boutons et de la police */
+  .button {
+    font-size: 16px;
+    padding: 10px 14px;
+  }
+  /* Ajuster les marges pour un espacement plus compact */
+  #upload-container {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+    flex-grow: 1;
+  }
+  #cropper-placeholder {
+    min-height: 200px;
+    height: auto;
+  }
+  #cropper-image {
+    max-height: 40vh;
+  }
+  /* Vous pouvez également réduire les espacements sur les tuiles si besoin */
+  .upload-tile {
+    margin: 0;
+  }
+  .upload-tile .placeholder {
+    font-size: 18px;
+  }
+  #save-changes,
+  #confirm-crop,
+  #close-uploader {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  div[style*="text-align: right"] {
+    text-align: center !important;
+  }
 }

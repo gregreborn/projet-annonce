@@ -1,70 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Test Image Uploader & Cropper</title>
   <!-- Foundation CSS (5.5.1) -->
   <link rel="stylesheet" href="assets/libs/foundation/css/foundation.min.css">
   <!-- CropperJS CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
   <link rel="stylesheet" href="assets/js/plugins/imageUploader/imageUploader.css">
-
 </head>
 <body>
-  <!-- Button to open the uploader modal -->
+  <!-- Bouton pour ouvrir le plugin -->
   <button id="open-uploader" class="button">Open Image Uploader</button>
-
-  <!-- Modal Overlay for Image Uploader & Cropper -->
-  <div id="image-uploader-modal" class="reveal-modal" data-reveal aria-hidden="true" role="dialog">
-    <h3>Upload and Crop Images</h3>
-    <!-- Hidden file input -->
-    <input type="file" id="image-uploader-input" multiple accept="image/*" style="display:none;">
-
-    <!-- Two-column layout: Left = upload tiles, Right = cropping area -->
-    <div id="upload-container">
-      <div id="image-list-container">
-        <!-- 4 upload tiles will be dynamically inserted here -->
-      </div>
-      <div id="cropper-section">
-        <div id="cropper-placeholder">Select an image to crop</div>
-        <img id="cropper-image" src="" alt="Cropper Image" style="display:none;">
-        <button id="confirm-crop" class="button success" style="margin-top: 10px;">Confirm Crop</button>
-      </div>
-    </div>
-    <!-- Save Changes button (positioned at the bottom right of the modal) -->
-    <div style="text-align: right; margin-top: 10px;">
-      <button id="save-changes" class="button success">Save Changes</button>
-    </div>
-    <button id="close-uploader" class="button alert" style="margin-top: 20px;">Close</button>
-  </div>
-  <div class="reveal-modal-bg" style="display:none;"></div>
-
 
   <!-- JS Libraries -->
   <script src="assets/libs/jquery.min.js"></script>
   <script src="assets/libs/foundation/js/foundation.min.js"></script>
   <!-- CropperJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
   <!-- Initialize Foundation -->
   <script>
     $(document).foundation();
-    $('#image-uploader-modal').foundation();
   </script>
 
   <!-- Load our ImageUploader plugin -->
   <script src="assets/js/plugins/imageUploader/imageUploader.js"></script>
   <script>
-    // Initialize the uploader
+    // Initialiser le plugin, qui injectera la modale automatiquement
     ImageUploader.init();
 
-    // Open modal on button click
+    // Ouvrir la modale au clic sur le bouton
     document.getElementById('open-uploader').addEventListener('click', function () {
       $('#image-uploader-modal').foundation('reveal', 'open');
-    });
-
-    // Close modal on button click
-    document.getElementById('close-uploader').addEventListener('click', function () {
-      $('#image-uploader-modal').foundation('reveal', 'close');
     });
   </script>
 </body>
