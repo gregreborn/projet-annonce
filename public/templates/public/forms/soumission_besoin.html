@@ -109,9 +109,15 @@
   </div>
 
   <div class="form-group">
-    <label for="media">Joindre un fichier (image, vidéo ou PDF)</label>
-    <input type="file" name="media[]" id="media" multiple>
+    <label for="media">Joindre un fichier (image uniquement pour l’instant)</label>
+    <!-- Ce div servira d'aperçu, le plugin gère l'affichage des images dans la modale -->
+    <div id="image-preview-container" class="image-preview-container"></div>
+    <!-- Champ caché pour stocker les données finales du plugin -->
+    <input type="hidden" name="uploadedImages" id="uploadedImages">
   </div>
+  
+  <!-- Bouton d'ouverture du plugin -->
+  <button type="button" id="open-uploader" class="button">Ajouter des images</button>
 
   <!-- Hidden field for type -->
   <input type="hidden" name="type" value="besoin">

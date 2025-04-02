@@ -1,6 +1,6 @@
 # ImageUploader Plugin
 
-ImageUploader est un plugin autonome et modulable qui permet aux utilisateurs de télécharger, recadrer et sélectionner une miniature (thumbnail) parmi jusqu'à 4 images. Il utilise CropperJS pour le recadrage et est conçu pour être intégré facilement dans vos projets web, notamment dans vos formulaires, tout en restant compatible avec Foundation 5.5.1.
+ImageUploader est un plugin autonome et modulable qui permet aux utilisateurs de télécharger, recadrer et sélectionner une miniature (thumbnail) parmi jusqu'à 4 images. Il utilise CropperJS pour le recadrage et est conçu pour être intégré facilement dans votre siteweb, notamment dans vos formulaires, tout en restant compatible avec Foundation 5.5.1.
 
 ---
 
@@ -142,4 +142,10 @@ ImageUploader offre une solution moderne, responsive et autonome pour l'upload e
 
 ---
 
-Vous pouvez sauvegarder ce contenu dans un fichier nommé `README.md` et l'inclure avec votre plugin.
+## Auteur
+
+Gregory Ronald St Facile
+tel: 514-224-3490
+email: gregorystfa023@gmail.com
+
+

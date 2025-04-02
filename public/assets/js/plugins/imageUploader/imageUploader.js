@@ -311,6 +311,7 @@
       const container = document.createElement("div");
       container.innerHTML = modalHTML;
       document.body.appendChild(container);
+      $(document).foundation();
     }
   
     const modalEl = document.getElementById("image-uploader-modal");

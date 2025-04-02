@@ -66,5 +66,19 @@
   <script src="https://unpkg.com/pristinejs/dist/pristine.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
   <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/js/base.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      if (typeof ImageUploader !== 'undefined') {
+        ImageUploader.init();
+        var openUploaderBtn = document.getElementById('open-uploader');
+        if (openUploaderBtn) {
+          openUploaderBtn.addEventListener('click', function () {
+            $('#image-uploader-modal').foundation('reveal', 'open');
+          });
+        }
+      }
+    });
+  </script>
+  
 </body>
 </html>
