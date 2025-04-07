@@ -8,7 +8,6 @@ use model\annonce;
 use model\media;
 use model\categories;
 use model\Localite;
-use model\localites;
 
 class annonceController extends Controller {
 
@@ -180,59 +179,26 @@ class annonceController extends Controller {
             $this->setFlashMessage("❌ Échec de la création de l’annonce.", true);
             return $this->renderFormOffre();
         }
-    
-        // ✅ Handle file upload (if any)
-        if (!empty($_FILES['media']['name'][0])) {
-            $this->handleMediaUpload($_FILES['media'], $annonceId);
+
+        // Process plugin image data if provided.
+        if (!empty($_POST['uploadedImages'])) {
+            $uploadedImages = json_decode($_POST['uploadedImages'], true);
+            if ($uploadedImages && is_array($uploadedImages)) {
+                foreach ($uploadedImages as $image) {
+                    $isThumbnail = (!empty($image['isThumbnail']) && $image['isThumbnail']) ? '1' : '0';
+                    Media::saveMedia($annonceId, $image['filePath'], $image['fileUrl'], $image['fileType'], $isThumbnail);
+                    if ($isThumbnail === '1' && isset($image['originalFilePath'])) {
+                        Media::saveMedia($annonceId, $image['originalFilePath'], $image['originalFileUrl'] ?? $image['fileUrl'], $image['fileType'], '0');
+                    }
+                }
+            }
         }
-    
+
+
         $this->setFlashMessage("✅ Annonce créée avec succès !");
         header("Location: " . SERVER_ABSOLUTE_PATH . "/annonces");
         exit();
     }
-    
-    
-
-    // Handles media uploads.
-    private function handleMediaUpload($files, $annonceId) {
-        $allowedTypes = ["image/jpeg", "image/png", "image/gif", "video/mp4", "application/pdf"];
-        $uploadDir = __DIR__ . "/../public/uploads/";
-        $maxFileSize = 20 * 1024 * 1024;
-    
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-    
-        // 🔁 Loop through all files
-        $fileCount = count($files['name']);
-        $thumbnailName = $_POST['thumbnailName'] ?? null;
-        for ($i = 0; $i < $fileCount; $i++) {
-            if ($files['error'][$i] === UPLOAD_ERR_OK) {
-                $fileTmpPath = $files['tmp_name'][$i];
-                $fileName = $files['name'][$i];
-                $fileSize = $files['size'][$i];
-                $fileType = mime_content_type($fileTmpPath);
-    
-                if (!in_array($fileType, $allowedTypes)) {
-                    continue;
-                }
-    
-                if ($fileSize > $maxFileSize) {
-                    continue;
-                }
-    
-                $uniqueName = time() . "_" . basename($fileName);
-                $targetFilePath = $uploadDir . $uniqueName;
-                $publicUrl = SERVER_ABSOLUTE_PATH . "/public/uploads/" . $uniqueName;
-    
-                if (move_uploaded_file($fileTmpPath, $targetFilePath)) {
-                    $isThumbnail = ($fileName === $thumbnailName) ? '1' : '0';
-                    Media::saveMedia($annonceId, $targetFilePath, $publicUrl, $fileType, $isThumbnail);
-                }
-            }
-        }
-    }
-    
     
     
 

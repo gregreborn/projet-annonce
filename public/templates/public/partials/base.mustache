@@ -69,7 +69,9 @@
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       if (typeof ImageUploader !== 'undefined') {
-        ImageUploader.init();
+        ImageUploader.init({
+          uploadEndpoint: '{{PUBLIC_ABSOLUTE_PATH}}/endpoints/upload_endpoint.php'
+        });
         var openUploaderBtn = document.getElementById('open-uploader');
         if (openUploaderBtn) {
           openUploaderBtn.addEventListener('click', function () {
@@ -79,6 +81,7 @@
       }
     });
   </script>
+  
   
 </body>
 </html>

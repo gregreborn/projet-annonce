@@ -8,38 +8,7 @@
   let activeImageIndex = null;
   let cropper = null;
 
- /* Fonction pour injecter dynamiquement le HTML du modal */
- function injectHTML() {
-  if (!document.getElementById("image-uploader-modal")) {
-    const modalHTML = `
-    <div id="image-uploader-modal" class="reveal-modal" data-reveal aria-hidden="true" role="dialog">
-      <div class="modal">
-        <a class="close-reveal-modal" aria-label="Close">&#215;</a>
-        <h3>Télécharger et recadrer des images</h3>
-        <input type="file" id="image-uploader-input" multiple accept="image/*" style="display:none;">
-        <div id="upload-container">
-          <div id="image-list-container">
-            <!-- Les 4 tuiles d'upload seront insérées ici -->
-          </div>
-          <div id="cropper-section">
-            <div id="cropper-placeholder">Sélectionnez une image à recadrer</div>
-            <img id="cropper-image" src="" alt="Cropper Image" style="display:none;">
-          </div>
-        </div>
-        <div id="button-group" style="text-align: right; margin-top: 10px;">
-          <button id="confirm-crop" class="button success">Confirmer le recadrage</button>
-          <button id="save-changes" class="button success">Enregistrer les modifications</button>
-          <button id="close-uploader" class="button alert">Fermer</button>
-        </div>
-      </div>
-    </div>
-    <div class="reveal-modal-bg"></div>
-    `;
-    const container = document.createElement("div");
-    container.innerHTML = modalHTML;
-    document.body.appendChild(container);
-  }
-}
+ 
 
   // Process an image file (resize & optionally compress)
   function processImage(file) {
@@ -269,19 +238,54 @@
 
   // Finalize selection: for demonstration, log final data and close modal
   function finalizeSelection() {
-    const finalData = {
-      images: images.map(img => ({
-        previewURL: img.previewURL,
-        croppedURL: img.croppedURL
-      })),
-      thumbnailIndex: activeImageIndex
-    };
-    console.log("Final images data:", finalData);
-    $('#image-uploader-modal').foundation('reveal', 'close');
+    // Create an array to hold upload promises for each image
+    const uploadPromises = images.map((img, idx) => {
+      // Use croppedBlob if available; otherwise, fallback to processedBlob
+      const blob = img.croppedBlob || img.processedBlob;
+      // Create a unique filename (adjust as needed)
+      const filename = 'image_' + Date.now() + '_' + idx + '.jpg';
+      return uploadImage(blob, filename).then(response => {
+        // Update the image object with returned info
+        img.filePath = response.filePath;
+        img.fileUrl = response.fileUrl;
+        img.fileType = response.fileType; // e.g. "image/jpeg"
+        return img;
+      });
+    });
+  
+    // Wait for all uploads to finish
+    Promise.all(uploadPromises)
+      .then(uploadedImages => {
+        // Build the final payload
+        const finalData = {
+          images: uploadedImages.map(img => ({
+            filePath: img.filePath,
+            fileUrl: img.fileUrl,
+            fileType: img.fileType,
+            isThumbnail: img.isThumbnail
+          })),
+          thumbnailIndex: uploadedImages.findIndex(img => img.isThumbnail)
+        };
+        
+        // Set the hidden field value (JSON string) for form submission
+        document.getElementById('uploadedImages').value = JSON.stringify(finalData.images);
+        
+        console.log("Final images data:", finalData);
+        // Close the modal
+        $('#image-uploader-modal').foundation('reveal', 'close');
+      })
+      .catch(err => {
+        console.error("Error uploading images", err);
+        // You could display an error message here
+      });
   }
+  
 
    // Initialiser le plugin et attacher les écouteurs
-   function initImageUploader(options = {}) {
+  function initImageUploader(options = {}) {
+     // Override the default uploadEndpoint if provided
+     uploadEndpoint = options.uploadEndpoint || uploadEndpoint;
+
     // Injection dynamique du HTML si nécessaire
     if (!document.getElementById("image-uploader-modal")) {
       const modalHTML = `
@@ -351,6 +355,30 @@
     updateImageList();
     window.addEventListener("resize", updateImageList);
   }
+
+  // Updated uploadImage: uses the configurable uploadEndpoint
+  function uploadImage(blob, filename) {
+    return new Promise(function(resolve, reject) {
+      const formData = new FormData();
+      formData.append("file", blob, filename);
+  
+      $.ajax({
+        url: uploadEndpoint,  // now using the configurable endpoint
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+          // Expect response to be JSON with properties: filePath, fileUrl, fileType, etc.
+          resolve(response);
+        },
+        error: function(err) {
+          reject(err);
+        }
+      });
+    });
+  }
+  
 
   // Expose the uploader globally
   window.ImageUploader = {
