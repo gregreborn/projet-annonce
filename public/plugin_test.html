@@ -1,38 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Image Uploader & Cropper</title>
-  <!-- Foundation CSS (5.5.1) -->
+  <meta charset="UTF-8">
+  <title>Test MediaUploader Plugin</title>
+  <!-- Foundation CSS -->
   <link rel="stylesheet" href="assets/libs/foundation/css/foundation.min.css">
-  <!-- CropperJS CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-  <link rel="stylesheet" href="assets/js/plugins/imageUploader/imageUploader.css">
+  <!-- CSS du plugin MediaUploader -->
+  <link rel="stylesheet" href="assets/js/plugins/mediaUploader/mediaUploader.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <style>
+    /* Vous pouvez ajouter ici des styles spécifiques pour les tuiles si nécessaire */
+    .media-tile { background: #fff; }
+  </style>
 </head>
 <body>
-  <!-- Bouton pour ouvrir le plugin -->
-  <button id="open-uploader" class="button">Open Image Uploader</button>
-
-  <!-- JS Libraries -->
+  <h1>Test MediaUploader Plugin</h1>
+  
+  <!-- Bouton pour ouvrir la modale MediaUploader -->
+  <button id="open-media-uploader" class="button">Ouvrir MediaUploader</button>
+  
+  <!-- Champ caché pour stocker le résultat final (optionnel) -->
+  <input type="hidden" id="uploadedMedia" name="uploadedMedia">
+  
+  <!-- Zone d'affichage globale (pour débug) -->
+  <div id="progress-log" style="margin-top:20px; font-family:monospace;"></div>
+  
+  <!-- jQuery -->
   <script src="assets/libs/jquery.min.js"></script>
+  <!-- Foundation JS -->
   <script src="assets/libs/foundation/js/foundation.min.js"></script>
-  <!-- CropperJS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-
-  <!-- Initialize Foundation -->
+  <!-- Script du plugin MediaUploader -->
+  <script src="assets/js/plugins/mediaUploader/mediaUploader.js"></script>
   <script>
     $(document).foundation();
-  </script>
-
-  <!-- Load our ImageUploader plugin -->
-  <script src="assets/js/plugins/imageUploader/imageUploader.js"></script>
-  <script>
-    // Initialiser le plugin, qui injectera la modale automatiquement
-    ImageUploader.init();
-
-    // Ouvrir la modale au clic sur le bouton
-    document.getElementById('open-uploader').addEventListener('click', function () {
-      $('#image-uploader-modal').foundation('reveal', 'open');
+    
+    // Initialisation du plugin avec configuration de l'endpoint
+    MediaUploader.init({
+        uploadEndpoint: 'endpoints/media_endpoint.php'
+    });
+      
+    
+    // Ouvre la modale lors du clic sur le bouton
+    document.getElementById('open-media-uploader').addEventListener('click', function() {
+      $('#media-uploader-modal').foundation('reveal', 'open');
     });
   </script>
 </body>

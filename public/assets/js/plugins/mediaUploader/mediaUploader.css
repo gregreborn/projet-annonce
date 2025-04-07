@@ -1,0 +1,31 @@
+.remove-media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    line-height: 24px; /* Match height */
+    text-align: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    box-sizing: border-box;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 1000;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    padding: 0;
+    font-family: inherit;
+    line-height: 24px;
+    overflow: hidden;
+    }
+  
+  .remove-media:hover {
+    background: rgba(255, 0, 0, 0.8);
+    transform: scale(1.1);
+  }
+  
