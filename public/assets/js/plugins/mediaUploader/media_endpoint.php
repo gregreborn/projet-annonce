@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 
 // Définissez le dossier final des uploads (par exemple, public/uploads)
-$uploadsDir = __DIR__ . '/../uploads/';
+$uploadsDir = __DIR__ . '/../../../../uploads/';
 // Dossier temporaire pour stocker les chunks
 $tempBaseDir = $uploadsDir . 'temp/';
 

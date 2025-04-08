@@ -7,7 +7,7 @@
     let filesToUpload = [];
     
     // Endpoint par défaut, qui peut être surchargé via les options d'initialisation
-    let uploadEndpoint = '/de   fault/media_upload_endpoint.php';
+    let uploadEndpoint = 'assets/js/plugins/mediaUploader/media_endpoint.php';
     
     // Injecte la modale dans le DOM si elle n'existe pas déjà
     function injectHTML() {
@@ -178,16 +178,27 @@
         }
         Promise.all(promises)
           .then(results => {
-            finalizeUpload(fileObj.fileId)
-              .then(finalResponse => {
-                console.log('Fichier final réassemblé:', finalResponse);
-                updateTileProgress(fileObj.fileId, 100);
-                // Stockez finalResponse dans un champ caché si besoin
-              })
-              .catch(err => console.error('Erreur lors de la finalisation:', err));
+            console.log('Tous les chunks ont été uploadés pour ', fileObj.fileId);
+            // NE PAS finaliser ici !
+            // Vous finaliserez plus tard lors de la soumission du formulaire
           })
-          .catch(err => console.error('Erreur lors de l’upload d’un chunk:', err));
+        .catch(err => console.error('Erreur lors de l’upload d’un chunk:', err));
       }
+    }
+    
+    function finalizeAllUploads() {
+      filesToUpload.forEach(fileObj => {
+        // Lance la finalisation uniquement si tous les chunks ont été uploadés et la finalisation n'a pas encore été faite
+        if (fileObj.uploadedChunks === fileObj.totalChunks) {
+          finalizeUpload(fileObj.fileId)
+            .then(finalResponse => {
+              console.log('Fichier final réassemblé:', finalResponse);
+              updateTileProgress(fileObj.fileId, 100);
+              // Vous pouvez enregistrer finalResponse dans un champ caché du formulaire, par exemple
+            })
+            .catch(err => console.error('Erreur lors de la finalisation:', err));
+        }
+      });
     }
     
     // Upload d'un chunk via AJAX
