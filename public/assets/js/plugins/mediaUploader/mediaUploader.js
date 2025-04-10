@@ -125,6 +125,7 @@
     // Gère la sélection de fichiers depuis l'input masqué
     function handleFiles(files) {
       Array.from(files).forEach(file => {
+        console.log("File selected:", file.name, "Size:", file.size);
         const allowedTypes = [
           'video/mp4', 'video/webm', 'video/ogg',
           'application/pdf',
@@ -142,20 +143,23 @@
           uploadedChunks: 0,
           progress: 0
         };
+        console.log("Calculated total chunks for", file.name, ":", fileObj.totalChunks);
         
         filesToUpload.push(fileObj);
         createFileTile(fileObj);
       });
     }
     
+    
     // Upload d'un fichier, en découpant en chunks si nécessaire
     function uploadFile(fileObj) {
+      console.log("Uploading file", fileObj.file.name, "Size:", fileObj.file.size, "Total chunks:", fileObj.totalChunks);
       if (fileObj.file.size <= CHUNK_SIZE) {
         uploadChunk(fileObj.file, fileObj.fileId, 0, 1)
           .then(response => {
             console.log('Fichier uploadé:', response);
             updateTileProgress(fileObj.fileId, 100);
-            // Vous pouvez stocker la réponse dans un champ caché pour le formulaire
+            // Optionally store the server response if needed.
           })
           .catch(error => {
             console.error('Erreur lors de l’upload du fichier:', error);
@@ -167,6 +171,7 @@
           let start = i * CHUNK_SIZE;
           let end = Math.min(fileObj.file.size, start + CHUNK_SIZE);
           let chunk = fileObj.file.slice(start, end);
+          console.log("Chunk", i, "size:", chunk.size); // Log each chunk's actual size.
           let promise = uploadChunk(chunk, fileObj.fileId, i, totalChunks)
             .then(response => {
               fileObj.uploadedChunks++;
@@ -179,12 +184,12 @@
         Promise.all(promises)
           .then(results => {
             console.log('Tous les chunks ont été uploadés pour ', fileObj.fileId);
-            // NE PAS finaliser ici !
-            // Vous finaliserez plus tard lors de la soumission du formulaire
+            // Do not finalize here unless intended.
           })
-        .catch(err => console.error('Erreur lors de l’upload d’un chunk:', err));
+          .catch(err => console.error('Erreur lors de l’upload d’un chunk:', err));
       }
     }
+    
     
     function finalizeAllUploads() {
       filesToUpload.forEach(fileObj => {
@@ -201,30 +206,35 @@
       });
     }
     
-    // Upload d'un chunk via AJAX
-    function uploadChunk(chunk, fileId, chunkIndex, totalChunks) {
-      return new Promise(function(resolve, reject) {
-        let formData = new FormData();
-        formData.append('file', chunk);
-        formData.append('fileId', fileId);
-        formData.append('chunkIndex', chunkIndex);
-        formData.append('totalChunks', totalChunks);
-        
-        $.ajax({
-          url: uploadEndpoint,
-          type: 'POST',
-          data: formData,
-          processData: false,
-          contentType: false,
-          success: function(response) {
-            resolve(response);
-          },
-          error: function(err) {
-            reject(err);
-          }
-        });
+   // Upload d'un chunk via AJAX
+   function uploadChunk(chunk, fileId, chunkIndex, totalChunks) {
+    return new Promise(function(resolve, reject) {
+      let formData = new FormData();
+      formData.append('file', chunk);
+      formData.append('fileId', fileId);
+      formData.append('chunkIndex', chunkIndex);
+      formData.append('totalChunks', totalChunks);
+      
+      console.log("Uploading chunk", chunkIndex, "of", totalChunks, "for fileId:", fileId);
+      
+      $.ajax({
+        url: uploadEndpoint,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+          console.log("Chunk", chunkIndex, "uploaded successfully. Server response:", response);
+          resolve(response);
+        },
+        error: function(err) {
+          console.error("Error uploading chunk", chunkIndex, "for fileId:", fileId, "Error details:", err);
+          reject(err);
+        }
       });
-    }
+    });
+  }
+  
     
     // Signale au serveur de réassembler les chunks pour un fichier donné
     function finalizeUpload(fileId) {

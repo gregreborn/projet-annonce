@@ -9,10 +9,24 @@ header('Content-Type: application/json');
   Vous pouvez adapter ce chemin en fonction de votre structure.
 */
 
-// Chemin absolu vers le dossier final des uploads (à adapter si nécessaire)
-$uploadsDir = __DIR__ . '/../../../../uploads/'; // part de public/assets/js/plugins/mediaUploader vers public/uploads
-$tempBaseDir = $uploadsDir . 'temp/'; // dossier temporaire pour les chunks
+// Compute the absolute path to the public directory
+$publicDir = realpath(__DIR__ . '/../../../..');
 
+// Check if realpath() succeeded
+if ($publicDir === false) {
+    die('Error: Could not resolve public directory.');
+}
+
+// Append 'uploads' and ensure proper directory separators (helpful on Windows)
+$uploadsDir = $publicDir . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
+
+// Optionally, define your temp base directory within uploads
+$tempBaseDir = $uploadsDir . 'temp' . DIRECTORY_SEPARATOR;
+
+// For debugging, you might want to output the computed paths:
+error_log('Public directory: ' . $publicDir);
+error_log('Uploads directory: ' . $uploadsDir);
+error_log('Temp directory: ' . $tempBaseDir);
 // Si le paramètre "finalize" est présent, cela signifie que tous les chunks ont été envoyés et qu'il faut réassembler le fichier.
 if (isset($_POST['finalize']) && $_POST['finalize'] == 'true') {
     if (!isset($_POST['fileId'])) {
