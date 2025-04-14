@@ -63,6 +63,7 @@ if (isset($_POST['delete']) && ($_POST['delete'] === 'true' || $_POST['delete'] 
 error_log('Public directory: ' . $publicDir);
 error_log('Uploads directory: ' . $uploadsDir);
 error_log('Temp directory: ' . $tempBaseDir);
+session_start(); // Si ce n'est pas déjà fait en début de script
 
 // --- Finalization Code (if finalize is sent) --- //
 if (isset($_POST['finalize']) && $_POST['finalize'] == 'true') {
@@ -118,6 +119,12 @@ if (isset($_POST['finalize']) && $_POST['finalize'] == 'true') {
     
     $publicUrl = 'http://localhost/projet-annonce/public/uploads/' . $finalFileName;
     
+        // Sauvegarder le lien dans la session.
+    if (!isset($_SESSION['uploadMediaFiles'])) {
+        $_SESSION['uploadMediaFiles'] = [];
+    }
+    $_SESSION['uploadMediaFiles'][] = $publicUrl;
+
     echo json_encode([
         'filePath' => $finalFilePath,
         'fileUrl' => $publicUrl,
