@@ -3,6 +3,28 @@
     const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
     const CHUNK_SIZE = 15 * 1024 * 1024; // Taille d'un chunk (15 MB)
     
+    // Helper function to ensure a file name includes an extension.
+    function getFinalFileName(file) {
+      // If the file name doesn't have a period, append a default extension.
+      if (file.name.lastIndexOf('.') === -1) {
+        if (file.type === 'video/mp4') {
+          return file.name + '.mp4';
+        } else if (file.type === 'video/webm') {
+          return file.name + '.webm';
+        } else if (file.type === 'video/ogg') {
+          return file.name + '.ogg';
+        } else if (file.type === 'application/pdf') {
+          return file.name + '.pdf';
+        } else if (file.type === 'application/msword') {
+          return file.name + '.doc';
+        } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+          return file.name + '.docx';
+        }
+        // Default fallback, you can choose what makes sense.
+        return file.name + '.mp4';
+      }
+      return file.name;
+    }
     // Tableau pour stocker les fichiers à uploader et leur état
     let filesToUpload = [];
     
@@ -159,7 +181,6 @@
           .then(response => {
             console.log('Fichier uploadé:', response);
             updateTileProgress(fileObj.fileId, 100);
-            // Optionally store the server response if needed.
           })
           .catch(error => {
             console.error('Erreur lors de l’upload du fichier:', error);
@@ -171,7 +192,7 @@
           let start = i * CHUNK_SIZE;
           let end = Math.min(fileObj.file.size, start + CHUNK_SIZE);
           let chunk = fileObj.file.slice(start, end);
-          console.log("Chunk", i, "size:", chunk.size); // Log each chunk's actual size.
+          console.log("Chunk", i, "size:", chunk.size);
           let promise = uploadChunk(chunk, fileObj.fileId, i, totalChunks)
             .then(response => {
               fileObj.uploadedChunks++;
@@ -184,11 +205,18 @@
         Promise.all(promises)
           .then(results => {
             console.log('Tous les chunks ont été uploadés pour ', fileObj.fileId);
-            // Do not finalize here unless intended.
+            // Automatically finalize the upload for this file, using getFinalFileName.
+            finalizeUpload(fileObj.fileId, getFinalFileName(fileObj.file))
+              .then(finalResponse => {
+                console.log('Fichier final réassemblé:', finalResponse);
+                updateTileProgress(fileObj.fileId, 100);
+              })
+              .catch(err => console.error('Erreur lors de la finalisation:', err));
           })
           .catch(err => console.error('Erreur lors de l’upload d’un chunk:', err));
       }
     }
+
     
     
     function finalizeAllUploads() {
@@ -237,12 +265,12 @@
   
     
     // Signale au serveur de réassembler les chunks pour un fichier donné
-    function finalizeUpload(fileId) {
+    function finalizeUpload(fileId, fileName) {
       return new Promise(function(resolve, reject) {
         $.ajax({
           url: uploadEndpoint,
           type: 'POST',
-          data: { fileId: fileId, finalize: true },
+          data: { fileId: fileId, finalize: true, fileName: fileName },
           success: function(response) {
             resolve(response);
           },

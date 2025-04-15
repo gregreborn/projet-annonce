@@ -1,18 +1,16 @@
 <?php
 header('Content-Type: application/json');
 
-// Compute the absolute path to the public directory
+// Compute the absolute path to the public directory.
 $publicDir = realpath(__DIR__ . '/../../../..');
-
-// Check if realpath() succeeded
 if ($publicDir === false) {
     die('Error: Could not resolve public directory.');
 }
 
-// Append 'uploads' and ensure proper directory separators (helpful on Windows)
+// Append 'uploads' and ensure proper directory separators.
 $uploadsDir = $publicDir . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
 
-// Optionally, define your temp base directory within uploads
+// Define the temp base directory within uploads.
 $tempBaseDir = $uploadsDir . 'temp' . DIRECTORY_SEPARATOR;
 
 // --- Deletion Branch ---
@@ -26,7 +24,7 @@ if (isset($_POST['delete']) && ($_POST['delete'] === 'true' || $_POST['delete'] 
     error_log("Deleting temporary folder for fileId: $fileId in directory: $tempDir");
     
     if (is_dir($tempDir)) {
-        // Delete all files in the temp directory
+        // Delete all files in the temp directory.
         $files = glob($tempDir . '*');
         if ($files !== false) {
             foreach ($files as $file) {
@@ -36,7 +34,7 @@ if (isset($_POST['delete']) && ($_POST['delete'] === 'true' || $_POST['delete'] 
                 }
             }
         }
-        // Remove the directory
+        // Remove the directory.
         if (rmdir($tempDir)) {
             error_log("Successfully removed directory: $tempDir");
         } else {
@@ -45,8 +43,8 @@ if (isset($_POST['delete']) && ($_POST['delete'] === 'true' || $_POST['delete'] 
     } else {
         error_log("Temp directory not found for fileId: $fileId");
     }
-
-    // Optionally, remove any assembled final files as well
+    
+    // Optionally, remove any assembled final files as well.
     $finalFiles = glob($uploadsDir . $fileId . '_*');
     if ($finalFiles !== false) {
         foreach ($finalFiles as $file) {
@@ -59,14 +57,16 @@ if (isset($_POST['delete']) && ($_POST['delete'] === 'true' || $_POST['delete'] 
     echo json_encode(['success' => true, 'message' => 'Media deleted successfully.']);
     exit;
 }
-// For debugging, you might want to output the computed paths:
+
+// For debugging, output the computed paths.
 error_log('Public directory: ' . $publicDir);
 error_log('Uploads directory: ' . $uploadsDir);
 error_log('Temp directory: ' . $tempBaseDir);
-session_start(); // Si ce n'est pas déjà fait en début de script
+session_start(); // Start the session if not already started.
 
 // --- Finalization Code (if finalize is sent) --- //
 if (isset($_POST['finalize']) && $_POST['finalize'] == 'true') {
+    set_time_limit(0);
     if (!isset($_POST['fileId'])) {
         echo json_encode(['error' => 'Missing fileId for finalization.']);
         exit;
@@ -75,12 +75,16 @@ if (isset($_POST['finalize']) && $_POST['finalize'] == 'true') {
     $tempDir = $tempBaseDir . $fileId . '/';
     error_log("Finalizing file with ID: $fileId in directory: $tempDir");
     
-    // Optional: Get original file name to preserve extension
+    // Optional: Get original file name for extension preservation.
     $originalFileName = isset($_POST['fileName']) ? $_POST['fileName'] : $fileId;
     $ext = pathinfo($originalFileName, PATHINFO_EXTENSION);
-    $ext = $ext ? '.' . $ext : '';
+    // Prepend a dot only if an extension exists
+    $extWithDot = $ext ? '.' . $ext : '';
+    // Optionally store the extension without the period:
+    $finalFileExtension = $ext ? ltrim($extWithDot, '.') : '';
     
-    $finalFileName = $fileId . '_' . time() . $ext;
+    // Create a unique final file name, including the extension.
+    $finalFileName = $fileId . '_' . time() . $extWithDot;
     $finalFilePath = $uploadsDir . $finalFileName;
     
     error_log("Creating final file: $finalFilePath");
@@ -92,6 +96,13 @@ if (isset($_POST['finalize']) && $_POST['finalize'] == 'true') {
     }
     
     $chunkFiles = glob($tempDir . 'chunk_*');
+    if ($chunkFiles === false || empty($chunkFiles)) {
+        error_log("No chunk files found in: $tempDir");
+        echo json_encode(['error' => 'No chunk files found for finalization.']);
+        fclose($out);
+        exit;
+    }
+    
     usort($chunkFiles, function($a, $b) {
         preg_match('/chunk_(\d+)/', $a, $matchA);
         preg_match('/chunk_(\d+)/', $b, $matchB);
@@ -107,7 +118,15 @@ if (isset($_POST['finalize']) && $_POST['finalize'] == 'true') {
             exit;
         }
         while (!feof($in)) {
-            fwrite($out, fread($in, 8192));
+            $buffer = fread($in, 8192);
+            if ($buffer === false) {
+                error_log("Error reading chunk file: " . basename($chunkFile));
+                echo json_encode(['error' => 'Error reading chunk file: ' . basename($chunkFile)]);
+                fclose($in);
+                fclose($out);
+                exit;
+            }
+            fwrite($out, $buffer);
         }
         fclose($in);
     }
@@ -119,21 +138,26 @@ if (isset($_POST['finalize']) && $_POST['finalize'] == 'true') {
     
     $publicUrl = 'http://localhost/projet-annonce/public/uploads/' . $finalFileName;
     
-        // Sauvegarder le lien dans la session.
+    // Start session if not already started.
     if (!isset($_SESSION['uploadMediaFiles'])) {
         $_SESSION['uploadMediaFiles'] = [];
     }
-    $_SESSION['uploadMediaFiles'][] = $publicUrl;
-
+    // Save both the URL and the extension in the session.
+    $_SESSION['uploadMediaFiles'][$fileId] = [
+        'fileUrl'   => $publicUrl,
+        'extension' => $finalFileExtension
+    ];
+    
     echo json_encode([
-        'filePath' => $finalFilePath,
-        'fileUrl' => $publicUrl,
-        'fileType' => ''
+        'filePath'  => $finalFilePath,
+        'fileUrl'   => $publicUrl,
+        'extension' => $finalFileExtension,
+        'fileType'  => ''
     ]);
     exit;
 }
 
-// --- Handle a Chunk Upload --- //
+// --- Handle a Chunk Upload ---
 if (!isset($_FILES['file'])) {
     echo json_encode(['error' => 'No file uploaded.']);
     exit;
@@ -151,11 +175,13 @@ if (!isset($_POST['fileId'], $_POST['chunkIndex'], $_POST['totalChunks'])) {
     exit;
 }
 
+
 $fileId = $_POST['fileId'];
 $chunkIndex = intval($_POST['chunkIndex']);
 $totalChunks = intval($_POST['totalChunks']);
 $tempDir = $tempBaseDir . $fileId . '/';
 
+// Create the temporary directory if it doesn't exist.
 if (!is_dir($tempDir)) {
     if (mkdir($tempDir, 0777, true)) {
         error_log("Created temporary directory: $tempDir");
@@ -169,17 +195,15 @@ if (!is_dir($tempDir)) {
 $chunkFileName = 'chunk_' . $chunkIndex;
 $targetFilePath = $tempDir . $chunkFileName;
 
-// Log before moving the file:
-    error_log("Attempting to move file from " . $file['tmp_name'] . " to " . $targetFilePath);
-
-    if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
-        error_log("Moved chunk $chunkIndex successfully for fileId $fileId");
-        echo json_encode(['success' => true, 'chunkIndex' => $chunkIndex]);
-        exit;
-    } else {
-        $lastError = error_get_last();
-        error_log("Failed to move uploaded chunk. Last error: " . json_encode($lastError));
-        echo json_encode(['error' => 'Failed to move uploaded chunk.']);
-        exit;
-    }
+error_log("Attempting to move file from " . $file['tmp_name'] . " to " . $targetFilePath);
+if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
+    error_log("Moved chunk $chunkIndex successfully for fileId $fileId");
+    echo json_encode(['success' => true, 'chunkIndex' => $chunkIndex]);
+    exit;
+} else {
+    $lastError = error_get_last();
+    error_log("Failed to move uploaded chunk. Last error: " . json_encode($lastError));
+    echo json_encode(['error' => 'Failed to move uploaded chunk.']);
+    exit;
+}
 ?>
