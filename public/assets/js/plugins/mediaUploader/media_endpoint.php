@@ -104,7 +104,7 @@ if (isset($_POST['finalize']) && $_POST['finalize'] == 'true') {
     }
     
     usort($chunkFiles, function($a, $b) {
-        preg_match('/chunk_(\d+)/', $a, $matchA);
+        preg_match('/chunk_(\d+)/', $a, $matchA); 
         preg_match('/chunk_(\d+)/', $b, $matchB);
         return intval($matchA[1]) - intval($matchB[1]);
     });
@@ -156,7 +156,37 @@ if (isset($_POST['finalize']) && $_POST['finalize'] == 'true') {
     ]);
     exit;
 }
+// === Traitement direct pour totalChunks == 1 (avant le traitement des chunks) ===
+if (!isset($_POST['finalize'])
+    && isset($_POST['totalChunks'])
+    && intval($_POST['totalChunks']) === 1
+    && isset($_FILES['file'])
+) {
+    $file      = $_FILES['file'];
+    $original  = $_POST['fileName'] ?? $file['name'];
+    $ext       = pathinfo($original, PATHINFO_EXTENSION);
+    $suffix    = $ext ? ".{$ext}" : '';
+    $finalName = $_POST['fileId'] . '_' . time() . $suffix;
+    $finalPath = $uploadsDir . $finalName;
 
+    if (move_uploaded_file($file['tmp_name'], $finalPath)) {
+                // stocke en session URL et extension
+                $_SESSION['uploadMediaFiles'][$_POST['fileId']] = [
+            'fileUrl'   => "http://localhost/projet-annonce/public/uploads/{$finalName}",
+            'extension' => $ext
+        ];
+        
+                echo json_encode([
+                    'filePath'  => $finalPath,
+                    'fileUrl'   => $_SESSION['uploadMediaFiles'][$_POST['fileId']]['fileUrl'],
+                    'extension' => $_SESSION['uploadMediaFiles'][$_POST['fileId']]['extension'],
+                    'fileType'  => $file['type']
+                ]);
+    } else {
+        echo json_encode(['error' => 'Failed to move single-chunk file.']);
+    }
+    exit;
+}
 // --- Handle a Chunk Upload ---
 if (!isset($_FILES['file'])) {
     echo json_encode(['error' => 'No file uploaded.']);

@@ -2,48 +2,44 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Test MediaUploader Plugin</title>
-  <!-- Foundation CSS -->
-  <link rel="stylesheet" href="assets/libs/foundation/css/foundation.min.css">
-  <!-- CSS du plugin MediaUploader -->
-  <link rel="stylesheet" href="assets/js/plugins/mediaUploader/mediaUploader.css">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test MediaUploader</title>
 
-  <style>
-    /* Vous pouvez ajouter ici des styles spécifiques pour les tuiles si nécessaire */
-    .media-tile { background: #fff; }
-  </style>
+  <!-- Foundation + Custom Styles -->
+  <link rel="stylesheet" href="assets/libs/foundation/css/foundation.min.css">
+  <link rel="stylesheet" href="assets/js/plugins/mediaUploader/mediaUploader.css">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-  <h1>Test MediaUploader Plugin</h1>
-  
-  <!-- Bouton pour ouvrir la modale MediaUploader -->
-  <button id="open-media-uploader" class="button">Ouvrir MediaUploader</button>
-  
-  <!-- Champ caché pour stocker le résultat final (optionnel) -->
-  <input type="hidden" id="uploadedMedia" name="uploadedMedia">
-  
-  <!-- Zone d'affichage globale (pour débug) -->
-  <div id="progress-log" style="margin-top:20px; font-family:monospace;"></div>
-  
-  <!-- jQuery -->
+
+  <div class="row">
+    <div class="columns small-12 text-center">
+      <h2>Test de MediaUploader</h2>
+      <button id="open-media-uploader" class="button success">Ouvrir la modale</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
   <script src="assets/libs/jquery.min.js"></script>
-  <!-- Foundation JS -->
   <script src="assets/libs/foundation/js/foundation.min.js"></script>
-  <!-- Script du plugin MediaUploader -->
   <script src="assets/js/plugins/mediaUploader/mediaUploader.js"></script>
+
   <script>
-    $(document).foundation();
-    
-    // Initialisation du plugin avec configuration de l'endpoint
-    MediaUploader.init({
-      uploadEndpoint: 'assets/js/plugins/mediaUploader/media_endpoint.php'
-    });
-      
-    
-    // Ouvre la modale lors du clic sur le bouton
-    document.getElementById('open-media-uploader').addEventListener('click', function() {
-      $('#media-uploader-modal').foundation('reveal', 'open');
+    document.addEventListener("DOMContentLoaded", function () {
+      if (typeof MediaUploader !== 'undefined') {
+        MediaUploader.init({
+          uploadEndpoint: 'assets/js/plugins/mediaUploader/media_endpoint.php'
+        });
+
+        const openMediaBtn = document.getElementById('open-media-uploader');
+        if (openMediaBtn) {
+          openMediaBtn.addEventListener('click', function () {
+            $('#media-uploader-modal').foundation('reveal', 'open');
+          });
+        }
+      }
     });
   </script>
 </body>

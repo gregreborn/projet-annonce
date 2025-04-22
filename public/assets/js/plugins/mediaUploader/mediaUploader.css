@@ -1,31 +1,168 @@
+
 .remove-media {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    line-height: 24px; /* Match height */
-    text-align: center;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.8);
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    box-sizing: border-box;
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    z-index: 1000;
-    transition: background-color 0.2s ease, transform 0.2s ease;
-    padding: 0;
-    font-family: inherit;
-    line-height: 24px;
-    overflow: hidden;
-    }
-  
-  .remove-media:hover {
-    background: rgba(255, 0, 0, 0.8);
-    transform: scale(1.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  line-height: 24px; /* Match height */
+  text-align: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  box-sizing: border-box;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 1000;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  padding: 0;
+  font-family: inherit;
+  line-height: 24px;
+  overflow: hidden;
   }
-  
+
+.remove-media:hover {
+  background: rgba(255, 0, 0, 0.8);
+  transform: scale(1.1);
+}
+#upload-media:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* target the modal itself */
+#media-uploader-modal {
+width: 90vw !important;
+max-width: 800px;
+margin: 0 auto;
+padding: 1rem;
+overflow-x: hidden;
+}
+
+/* grille fluide */
+#media-tile-container {
+display: grid;
+grid-template-columns: repeat(1,1fr);
+margin-top: 1rem;
+gap: 10px;
+}
+@media (min-width: 640px) { #media-tile-container { grid-template-columns: repeat(2,1fr); } }
+@media (min-width: 900px) { #media-tile-container { grid-template-columns: repeat(3,1fr); } }
+@media (min-width: 1200px){ #media-tile-container { grid-template-columns: repeat(4,1fr); } }
+
+/* tuiles */
+.media-tile {
+  width: 160px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+  overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+  background: white;
+  align-self: flex-start; /* Key for Flexbox */
+}
+
+.media-info {
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+
+.toggle-section::before {
+  content: '▶️ ';
+  display: inline-block;
+  margin-right: 5px;
+  transition: transform 0.2s ease;
+}
+.toggle-section.open::before {
+  content: '▼️ ';
+}
+
+.media-thumb i {
+  font-size: 48px;
+}
+.media-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 100%;
+}
+
+.media-tile:hover {
+transform: translateY(-3px);
+box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.media-type-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start; /* Important! Prevent vertical stretching */
+}
+
+
+#media-tile-container h4 {
+  margin-top: 2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* bouton de sélection et footer restent centrés */
+#button-group { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+@media (max-width: 480px) {
+  #media-uploader-modal {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100% !important;
+    padding: 1rem !important;
+    border-radius: 0 !important;
+    overflow-y: auto !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+  }
+  .remove-media {
+    opacity: 1 !important;
+    transform: none !important;
+    background: rgba(255, 0, 0, 0.8);
+    color: white;
+    font-weight: bold;
+  }
+  #media-tile-container {
+    grid-template-columns: repeat(1, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  #button-group {
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .button {
+    width: 100% !important;
+    font-size: 16px;
+    padding: 12px 18px;
+    text-align: center;
+  }
+}
+#media-uploader-modal.reveal-modal {
+  transform: translateY(-20px);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+#media-uploader-modal.open {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
