@@ -62,22 +62,65 @@
   <script>$(document).foundation();</script>
   <!-- Plugin script + style -->
   <link rel="stylesheet" href="{{PUBLIC_ABSOLUTE_PATH}}/assets/js/plugins/imageUploader/imageUploader.css">
+  <link rel="stylesheet" href="{{PUBLIC_ABSOLUTE_PATH}}/assets/js/plugins/mediaUploader/mediaUploader.css">
   <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/js/plugins/imageUploader/imageUploader.js"></script>
+  <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/js/plugins/mediaUploader/mediaUploader.js"></script>
   <script src="https://unpkg.com/pristinejs/dist/pristine.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
   <script src="{{PUBLIC_ABSOLUTE_PATH}}/assets/js/base.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
+      // --- ImageUploader (existant) ---
       if (typeof ImageUploader !== 'undefined') {
         ImageUploader.init({
           uploadEndpoint: '{{PUBLIC_ABSOLUTE_PATH}}/endpoints/upload_endpoint.php'
         });
-        var openUploaderBtn = document.getElementById('open-uploader');
-        if (openUploaderBtn) {
-          openUploaderBtn.addEventListener('click', function () {
+        const btnImg = document.getElementById('open-image-uploader');
+        if (btnImg) {
+          btnImg.addEventListener('click', function () {
             $('#image-uploader-modal').foundation('reveal', 'open');
           });
         }
+        // Optionnel : écouter un event custom si ImageUploader le dispatch
+        document.addEventListener('imageUploader:uploadComplete', function(e) {
+          const imgs = e.detail; // tableau de {fileUrl,...}
+          const preview = document.getElementById('image-preview-container');
+          preview.innerHTML = '';
+          imgs.forEach(i => {
+            const el = document.createElement('img');
+            el.src = i.fileUrl;
+            el.style.maxWidth = '100px';
+            el.style.marginRight = '8px';
+            preview.appendChild(el);
+          });
+          document.getElementById('uploadedImages').value = JSON.stringify(imgs);
+        });
+      }
+
+      // --- MediaUploader (nouveau) ---
+      if (typeof MediaUploader !== 'undefined') {
+        MediaUploader.init({
+          uploadEndpoint: '{{PUBLIC_ABSOLUTE_PATH}}/assets/js/plugins/mediaUploader/media_endpoint.php'
+        });
+        const btnMedia = document.getElementById('open-media-uploader');
+        if (btnMedia) {
+          btnMedia.addEventListener('click', function () {
+            $('#media-uploader-modal').foundation('reveal', 'open');
+          });
+        }
+        document.addEventListener('mediaUploader:uploadComplete', function(e) {
+          const medias = e.detail; // tableau de {fileUrl,...}
+          const preview = document.getElementById('media-preview-container');
+          preview.innerHTML = '';
+          medias.forEach(m => {
+            const el = document.createElement('img');
+            el.src = m.fileUrl;
+            el.style.maxWidth = '100px';
+            el.style.marginRight = '8px';
+            preview.appendChild(el);
+          });
+          document.getElementById('uploadedMedia').value = JSON.stringify(medias);
+        });
       }
     });
   </script>

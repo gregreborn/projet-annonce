@@ -1,11 +1,174 @@
+/* --------------------------
+   Global Styles
+--------------------------- */
+#upload-media:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
+/* --------------------------
+   Modal Layout
+--------------------------- */
+#media-uploader-modal {
+  width: 90vw !important;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+  overflow-x: hidden;
+}
+
+#media-uploader-modal.reveal-modal {
+  transform: translateY(-20px);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+#media-uploader-modal.open {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+/* --------------------------
+   Media Dropzone
+--------------------------- */
+.media-dropzone {
+  border: 2px dashed #aaa;
+  padding: 30px 10px;
+  margin: 15px 0;
+  border-radius: 10px;
+  background-color: #f8f8f8;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.media-dropzone.dragover {
+  background-color: #e6f7ff;
+  border-color: #0078D7;
+}
+
+.media-dropzone i {
+  font-size: 36px;
+  color: #aaa;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.media-dropzone p {
+  color: #666;
+  font-size: 0.9em;
+  margin: 0;
+}
+
+/* --------------------------
+   Tile Container & Grids
+--------------------------- */
+#media-tile-container {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  margin-top: 1rem;
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  #media-tile-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  #media-tile-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  #media-tile-container {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+#media-tile-container h4 {
+  margin-top: 2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.media-type-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* --------------------------
+   Media Tiles
+--------------------------- */
+.media-tile {
+  width: 160px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  background: white;
+  align-self: flex-start;
+}
+.media-progress-bar {
+  background-color: #4caf50;
+  transition: width 0.2s ease;
+}
+
+.media-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.media-thumb i {
+  font-size: 48px;
+}
+
+.media-info {
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.media-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 100%;
+}
+
+/* --------------------------
+   Toggle Section
+--------------------------- */
+.toggle-section::before {
+  content: '▶️ ';
+  display: inline-block;
+  margin-right: 5px;
+  transition: transform 0.2s ease;
+}
+
+.toggle-section.open::before {
+  content: '▼️ ';
+}
+
+/* --------------------------
+   Remove Button
+--------------------------- */
 .remove-media {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 24px;
   height: 24px;
-  line-height: 24px; /* Match height */
   text-align: center;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.8);
@@ -23,100 +186,26 @@
   font-family: inherit;
   line-height: 24px;
   overflow: hidden;
-  }
+}
 
 .remove-media:hover {
   background: rgba(255, 0, 0, 0.8);
   transform: scale(1.1);
 }
-#upload-media:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
-/* target the modal itself */
-#media-uploader-modal {
-width: 90vw !important;
-max-width: 800px;
-margin: 0 auto;
-padding: 1rem;
-overflow-x: hidden;
-}
-
-/* grille fluide */
-#media-tile-container {
-display: grid;
-grid-template-columns: repeat(1,1fr);
-margin-top: 1rem;
-gap: 10px;
-}
-@media (min-width: 640px) { #media-tile-container { grid-template-columns: repeat(2,1fr); } }
-@media (min-width: 900px) { #media-tile-container { grid-template-columns: repeat(3,1fr); } }
-@media (min-width: 1200px){ #media-tile-container { grid-template-columns: repeat(4,1fr); } }
-
-/* tuiles */
-.media-tile {
-  width: 160px;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 5px;
-  overflow: hidden;
-  transition: transform .2s, box-shadow .2s;
-  background: white;
-  align-self: flex-start; /* Key for Flexbox */
-}
-
-.media-info {
-  min-height: 70px;
+/* --------------------------
+   Footer Button Group
+--------------------------- */
+#button-group {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 
-
-.toggle-section::before {
-  content: '▶️ ';
-  display: inline-block;
-  margin-right: 5px;
-  transition: transform 0.2s ease;
-}
-.toggle-section.open::before {
-  content: '▼️ ';
-}
-
-.media-thumb i {
-  font-size: 48px;
-}
-.media-name {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  display: block;
-  max-width: 100%;
-}
-
-.media-tile:hover {
-transform: translateY(-3px);
-box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-.media-type-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: flex-start; /* Important! Prevent vertical stretching */
-}
-
-
-#media-tile-container h4 {
-  margin-top: 2rem;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #333;
-}
-
-/* bouton de sélection et footer restent centrés */
-#button-group { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+/* --------------------------
+   Responsive Styles
+--------------------------- */
 @media (max-width: 480px) {
   #media-uploader-modal {
     width: 100vw !important;
@@ -129,6 +218,7 @@ box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     left: 0 !important;
     transform: none !important;
   }
+
   .remove-media {
     opacity: 1 !important;
     transform: none !important;
@@ -136,6 +226,7 @@ box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     color: white;
     font-weight: bold;
   }
+
   #media-tile-container {
     grid-template-columns: repeat(1, 1fr) !important;
     gap: 8px !important;
@@ -154,15 +245,4 @@ box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     padding: 12px 18px;
     text-align: center;
   }
-}
-#media-uploader-modal.reveal-modal {
-  transform: translateY(-20px);
-  opacity: 0;
-  visibility: hidden;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-#media-uploader-modal.open {
-  transform: translateY(0);
-  opacity: 1;
-  visibility: visible;
 }

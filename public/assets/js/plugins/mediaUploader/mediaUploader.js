@@ -1,35 +1,40 @@
 (function() {
-    // Constantes
+    /******************************************
+     * SECTION 1 : CONSTANTES ET VARIABLES
+     ******************************************/
     const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
-    const CHUNK_SIZE = 15 * 1024 * 1024; // Taille d'un chunk (15 MB)
+    const CHUNK_SIZE = 15 * 1024 * 1024;    // Taille d'un chunk (15 MB)
+    let filesToUpload = [];                  // Tableau pour stocker les fichiers à uploader et leur état
+    let uploadEndpoint = 'assets/js/plugins/mediaUploader/media_endpoint.php'; // Endpoint par défaut
     
-    // Helper function to ensure a file name includes an extension.
+    // Table de correspondance entre les types MIME et les extensions
+    const MIME_EXTENSION_MAP = {
+      'video/mp4': '.mp4',
+      'video/webm': '.webm',
+      'video/ogg': '.ogg',
+      'application/pdf': '.pdf',
+      'application/msword': '.doc',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx'
+    };
+
+    /******************************************
+     * SECTION 2 : FONCTIONS UTILITAIRES
+     ******************************************/
+    /**
+     * Retourne un nom de fichier incluant une extension.
+     * @param {File} file - L’objet File pour lequel on veut un nom valide.
+     * @returns {string} - Le nom de fichier avec extension.
+     */
     function getFinalFileName(file) {
-      // If the file name doesn't have a period, append a default extension.
-      if (file.name.lastIndexOf('.') === -1) {
-        if (file.type === 'video/mp4') {
-          return file.name + '.mp4';
-        } else if (file.type === 'video/webm') {
-          return file.name + '.webm';
-        } else if (file.type === 'video/ogg') {
-          return file.name + '.ogg';
-        } else if (file.type === 'application/pdf') {
-          return file.name + '.pdf';
-        } else if (file.type === 'application/msword') {
-          return file.name + '.doc';
-        } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-          return file.name + '.docx';
-        }
-        // Default fallback, you can choose what makes sense.
-        return file.name + '.mp4';
+      const { name, type } = file;
+      if (name.includes('.')) {
+        return name;
       }
-      return file.name;
+      const extension = MIME_EXTENSION_MAP[type] || '.mp4';
+      return name + extension;
     }
-    // Tableau pour stocker les fichiers à uploader et leur état
-    let filesToUpload = [];
     
-    // Endpoint par défaut, qui peut être surchargé via les options d'initialisation
-    let uploadEndpoint = 'assets/js/plugins/mediaUploader/media_endpoint.php';
+    // Affiche un message d'erreur dans le DOM
     function showError(message) {
       const err = document.getElementById('media-error-container');
       if (!err) return;
@@ -37,6 +42,7 @@
       err.style.display = 'block';
     }
     
+    // Masque le message d'erreur
     function hideError() {
       const err = document.getElementById('media-error-container');
       if (!err) return;
@@ -44,49 +50,90 @@
       err.style.display = 'none';
     }
     
-    // Injecte la modale dans le DOM si elle n'existe pas déjà
+    /******************************************
+     * SECTION 3 : INJECTION DU CODE HTML
+     ******************************************/
     function injectHTML() {
       if (!document.getElementById("media-uploader-modal")) {
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    
+        const dropzoneHTML = isTouchDevice ? '' : `
+          <div id="media-dropzone" class="media-dropzone">
+            <i class="material-icons">cloud_upload</i>
+            <p>Glissez-déposez vos fichiers ici</p>
+          </div>
+        `;
+    
         const modalHTML = `
-        <div id="media-uploader-modal" class="reveal-modal" data-reveal aria-hidden="true" role="dialog">
-          <div class="modal" style="position:relative; padding:20px;">
-            <a class="close-reveal-modal" aria-label="Close">&#215;</a>
-            <h3>Télécharger des médias (vidéo/doc/pdf)</h3>
-            
-            <!-- Zone d'erreur -->
-            <div id="media-error-container" 
-                class="alert-box alert" 
-                style="display:none; margin-bottom:10px; padding:8px; border-radius:4px;">
-            </div>
-
-            <!-- Bouton visible pour sélectionner un fichier -->
-            <button id="select-media" class="button">Sélectionner un fichier</button>
-            <!-- Input de type file masqué -->
-            <input type="file" id="media-uploader-input" multiple accept="video/mp4,video/webm,video/ogg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none;">
-            <!-- Zone d'affichage des tuiles pour chaque fichier sélectionné -->
-            <div id="media-tile-container">
-              <h4 id="video-count" class="toggle-section" style="cursor:pointer;">📹 Vidéos</h4>
-              <div id="media-videos" class="media-type-group"></div>
-              
-              <h4 id="doc-count" class="toggle-section" style="cursor:pointer;">📄 Documents</h4>
-              <div id="media-documents" class="media-type-group"></div>
-            </div>
-            <div id="button-group" style="text-align: right; margin-top: 15px;">
-              <button id="upload-media" class="button success">Télécharger</button>
-              <button id="close-media-uploader" class="button alert">Fermer</button>
+          <div id="media-uploader-modal" class="reveal-modal" data-reveal aria-hidden="true" role="dialog">
+            <div class="modal" style="position:relative; padding:20px;">
+              <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+              <h3>Télécharger des médias (vidéo/doc/pdf)</h3>
+    
+              <div id="media-error-container" 
+                   class="alert-box alert" 
+                   style="display:none; margin-bottom:10px; padding:8px; border-radius:4px;">
+              </div>
+    
+              ${dropzoneHTML} <!-- Conditional Dropzone Here -->
+    
+              <button id="select-media" class="button">Sélectionner un fichier</button>
+              <input type="file" id="media-uploader-input" multiple 
+                     accept="video/mp4,video/webm,video/ogg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+                     style="display:none;">
+    
+              <div id="media-tile-container">
+                <h4 id="video-count" class="toggle-section" style="cursor:pointer;">📹 Vidéos</h4>
+                <div id="media-videos" class="media-type-group"></div>
+    
+                <h4 id="doc-count" class="toggle-section" style="cursor:pointer;">📄 Documents</h4>
+                <div id="media-documents" class="media-type-group"></div>
+              </div>
+    
+              <div id="button-group" style="text-align: right; margin-top: 15px;">
+                <button id="upload-media" class="button success">Télécharger</button>
+                <button id="close-media-uploader" class="button alert">Fermer</button>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="reveal-modal-bg"></div>
+          <div class="reveal-modal-bg"></div>
         `;
+    
         let container = document.createElement("div");
         container.innerHTML = modalHTML;
         document.body.appendChild(container);
-
+    
+        // Ajout des événements pour la zone de dépôt si l'appareil n'est pas tactile
+        if (!isTouchDevice) {
+          const dropzone = document.getElementById('media-dropzone');
+    
+          dropzone.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+          });
+    
+          dropzone.addEventListener('dragleave', function () {
+            dropzone.classList.remove('dragover');
+          });
+    
+          dropzone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length > 0) {
+              handleFiles(files);
+            }
+          });
+        }
+    
         const modal = document.getElementById("media-uploader-modal");
-        $(modal).foundation(); // ⬅ THIS is what makes Reveal work
+        $(modal).foundation(); // Activation de Foundation Reveal
       }
     }
+    
+    /******************************************
+     * SECTION 4 : GESTION DES ÉVÉNEMENTS GLOBAUX
+     ******************************************/
     document.addEventListener('click', function(e) {
       if (e.target.classList.contains('toggle-section')) {
         const next = e.target.nextElementSibling;
@@ -96,11 +143,15 @@
       }
     });
     
+    /******************************************
+     * SECTION 5 : GESTION DES FICHIERS ET DE LEURS TUILES
+     ******************************************/
     // Génère un identifiant unique pour un fichier
     function generateFileId() {
       return 'file_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
     }
     
+    // Crée la tuile visuelle pour un fichier
     function createFileTile(fileObj) {
       let tileContainer;
       if (fileObj.file.type.startsWith("video/")) {
@@ -110,28 +161,27 @@
       }
       if (!tileContainer) return;
         
-        // Choix d'une icône selon le type de fichier avec Material Icons
-        let iconHTML;
-        if (fileObj.file.type.startsWith("video/")) {
+      // Choix d'une icône selon le type de fichier avec Material Icons
+      let iconHTML;
+      if (fileObj.file.type.startsWith("video/")) {
           iconHTML = '<i class="material-icons" style="font-size:48px;">videocam</i>';
-        } else if (fileObj.file.type === "application/pdf") {
+      } else if (fileObj.file.type === "application/pdf") {
           iconHTML = '<i class="material-icons" style="font-size:48px;">picture_as_pdf</i>';
-        } else {
-          // Pour les documents (doc, docx)
+      } else {
           iconHTML = '<i class="material-icons" style="font-size:48px;">description</i>';
-        }
+      }
         
-        // Crée la tuile
-        let tile = document.createElement("div");
-        tile.className = "media-tile";
-        tile.setAttribute("data-fileid", fileObj.fileId);
-        tile.style.position = "relative";
-        tile.style.border = "1px solid #ccc";
-        tile.style.padding = "5px";
-        tile.style.borderRadius = "5px";
+      // Création de la tuile
+      let tile = document.createElement("div");
+      tile.className = "media-tile";
+      tile.setAttribute("data-fileid", fileObj.fileId);
+      tile.style.position = "relative";
+      tile.style.border = "1px solid #ccc";
+      tile.style.padding = "5px";
+      tile.style.borderRadius = "5px";
         
-        // Contenu de la tuile
-        tile.innerHTML = `
+      // Contenu de la tuile
+      tile.innerHTML = `
           <div class="media-thumb" style="text-align:center;">
             ${iconHTML}
           </div>
@@ -143,39 +193,34 @@
             <span class="media-progress-text" style="display:block; text-align:center;">0%</span>
           </div>
             <button class="remove-media">&times;</button>
-        `;
+      `;
         
-        // Ajoute l'événement de suppression
-        tile.querySelector(".remove-media").addEventListener("click", function() {
-            deleteUploadedMedia(fileObj.fileId).then(function(resp) {
+      // Événement de suppression de la tuile
+      tile.querySelector(".remove-media").addEventListener("click", function() {
+          deleteUploadedMedia(fileObj.fileId).then(function(resp) {
               removeFileTile(fileObj.fileId);
-            }).catch(function(err) {
+          }).catch(function(err) {
               console.error("Erreur lors de la suppression :", err);
               alert("Erreur lors de la suppression du fichier. Veuillez réessayer.");
-            });
           });
-          
-        
-        tileContainer.appendChild(tile);
-        updateSectionCounts();
+      });
+    
+      tileContainer.appendChild(tile);
+      updateSectionCounts();
     }
       
-    // Supprime la tuile et le fichier correspondant du tableau
+    // Supprime la tuile et le fichier correspondant
     function removeFileTile(fileId) {
-      // Supprimer de filesToUpload
       filesToUpload = filesToUpload.filter(f => f.fileId !== fileId);
-    
-      // Supprimer la tuile du DOM
       let tile = document.querySelector(`.media-tile[data-fileid="${fileId}"]`);
       if (tile && tile.parentNode) {
         tile.parentNode.removeChild(tile);
       }
-    
-      // Réinitialiser l'input fichier
       resetFileInput();
       updateUploadButtonState();
     }
-
+    
+    // Met à jour les compteurs de tuiles affichés
     function updateSectionCounts() {
       const videoCount = document.querySelectorAll("#media-videos .media-tile").length;
       const docCount = document.querySelectorAll("#media-documents .media-tile").length;
@@ -186,7 +231,6 @@
       if (videoCountEl) videoCountEl.textContent = videoCount;
       if (docCountEl) docCountEl.textContent = docCount;
     }
-    
     
     // Met à jour la barre de progression d'une tuile
     function updateTileProgress(fileId, percent) {
@@ -201,36 +245,39 @@
       }
       console.log('Upload', fileId, ':', percent + '%');
     }
+    
+    /******************************************
+     * SECTION 6 : GESTION DE LA SÉLECTION ET DU TRAITEMENT DES FICHIERS
+     ******************************************/
     function resetFileInput() {
       const old = document.getElementById('media-uploader-input');
       const parent = old.parentNode;
       const clone = old.cloneNode();
-      // 👉 on remet exactement les mêmes props / listeners
       clone.id = old.id;
       clone.multiple = old.multiple;
       clone.accept = old.accept;
       clone.style.display = 'none';
-      // on ré-attache le listener de change
       clone.addEventListener('change', onFileInputChange);
       parent.replaceChild(clone, old);
     }
+    
     function onFileInputChange(e) {
       handleFiles(e.target.files);
-      // inutile de vider la valeur ici
+      e.target.value = '';
+
     }
     
-    // Gère la sélection de fichiers depuis l'input masqué
+    // Traite les fichiers sélectionnés
     function handleFiles(files) {
       hideError();
-    
       const currentCount = filesToUpload.length;
       const newFiles = Array.from(files);
-    
+      
       if (currentCount + newFiles.length > 10) {
         showError(`Vous pouvez télécharger un maximum de 10 médias. Actuellement sélectionnés: ${currentCount}.`);
         return;
       }
-    
+      
       newFiles.forEach(file => {
         const allowedTypes = [
           'video/mp4', 'video/webm', 'video/ogg',
@@ -257,28 +304,26 @@
         updateUploadButtonState();
       });
     }
+    
     function updateUploadButtonState() {
       const uploadBtn = document.getElementById('upload-media');
       if (!uploadBtn) return;
-    
       const count = filesToUpload.length;
       uploadBtn.disabled = count === 0 || count > 10;
     }
     
-    
-    
-    
-    // Upload d'un fichier, en découpant en chunks si nécessaire
+    /******************************************
+     * SECTION 7 : UPLOAD DES FICHIERS
+     ******************************************/
     function uploadFile(fileObj) {
       console.log("Uploading file", fileObj.file.name, "Size:", fileObj.file.size, "Total chunks:", fileObj.totalChunks);
       if (fileObj.file.size <= CHUNK_SIZE) {
-        // construisons nous‑mêmes la FormData pour un seul chunk
         let formData = new FormData();
         formData.append('file', fileObj.file);
         formData.append('fileId', fileObj.fileId);
         formData.append('chunkIndex', 0);
         formData.append('totalChunks', 1);
-        formData.append('fileName', fileObj.file.name);  // ! indispensable
+        formData.append('fileName', fileObj.file.name);
     
         $.ajax({
           url: uploadEndpoint,
@@ -289,6 +334,7 @@
           success(response) {
             console.log('Upload direct réussi :', response);
             updateTileProgress(fileObj.fileId, 100);
+            fileObj.status = 'uploaded';
           },
           error(err) {
             console.error('Erreur upload direct :', err);
@@ -314,66 +360,55 @@
         Promise.all(promises)
           .then(results => {
             console.log('Tous les chunks ont été uploadés pour ', fileObj.fileId);
-            // Automatically finalize the upload for this file, using getFinalFileName.
-            finalizeUpload(fileObj.fileId, getFinalFileName(fileObj.file))
-              .then(finalResponse => {
-                console.log('Fichier final réassemblé:', finalResponse);
-                updateTileProgress(fileObj.fileId, 100);
-              })
-              .catch(err => console.error('Erreur lors de la finalisation:', err));
+            return finalizeUpload(fileObj.fileId, getFinalFileName(fileObj.file));
           })
-          .catch(err => console.error('Erreur lors de l’upload d’un chunk:', err));
+          .then(finalResponse => {
+            console.log('Fichier final réassemblé:', finalResponse);
+            updateTileProgress(fileObj.fileId, 100);
+          })
+          .catch(err => {
+            console.error('Erreur lors de l’upload d’un chunk ou de la finalisation:', err);
+          })
+          .finally(() => {
+            fileObj.status = 'uploaded';
+          });
       }
     }
-
     
-    
-    function finalizeAllUploads() {
-      filesToUpload.forEach(fileObj => {
-        // Lance la finalisation uniquement si tous les chunks ont été uploadés et la finalisation n'a pas encore été faite
-        if (fileObj.uploadedChunks === fileObj.totalChunks) {
-          finalizeUpload(fileObj.fileId)
-            .then(finalResponse => {
-              console.log('Fichier final réassemblé:', finalResponse);
-              updateTileProgress(fileObj.fileId, 100);
-              // Vous pouvez enregistrer finalResponse dans un champ caché du formulaire, par exemple
-            })
-            .catch(err => console.error('Erreur lors de la finalisation:', err));
-        }
+    /******************************************
+     * SECTION 8 : UPLOAD DES CHUNKS 
+     ******************************************/
+    function uploadChunk(chunk, fileId, chunkIndex, totalChunks) {
+      return new Promise(function(resolve, reject) {
+        let formData = new FormData();
+        formData.append('file', chunk);
+        formData.append('fileId', fileId);
+        formData.append('chunkIndex', chunkIndex);
+        formData.append('totalChunks', totalChunks);
+      
+        console.log("Uploading chunk", chunkIndex, "of", totalChunks, "for fileId:", fileId);
+      
+        $.ajax({
+          url: uploadEndpoint,
+          type: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function(response) {
+            console.log("Chunk", chunkIndex, "uploaded successfully. Server response:", response);
+            resolve(response);
+          },
+          error: function(err) {
+            console.error("Error uploading chunk", chunkIndex, "for fileId:", fileId, "Error details:", err);
+            reject(err);
+          }
+        });
       });
     }
     
-   // Upload d'un chunk via AJAX
-   function uploadChunk(chunk, fileId, chunkIndex, totalChunks) {
-    return new Promise(function(resolve, reject) {
-      let formData = new FormData();
-      formData.append('file', chunk);
-      formData.append('fileId', fileId);
-      formData.append('chunkIndex', chunkIndex);
-      formData.append('totalChunks', totalChunks);
-      
-      console.log("Uploading chunk", chunkIndex, "of", totalChunks, "for fileId:", fileId);
-      
-      $.ajax({
-        url: uploadEndpoint,
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-          console.log("Chunk", chunkIndex, "uploaded successfully. Server response:", response);
-          resolve(response);
-        },
-        error: function(err) {
-          console.error("Error uploading chunk", chunkIndex, "for fileId:", fileId, "Error details:", err);
-          reject(err);
-        }
-      });
-    });
-  }
-  
-    
-    // Signale au serveur de réassembler les chunks pour un fichier donné
+    /******************************************
+     * SECTION 9 : FINALISATION DE L'UPLOAD
+     ******************************************/
     function finalizeUpload(fileId, fileName) {
       return new Promise(function(resolve, reject) {
         $.ajax({
@@ -389,51 +424,65 @@
         });
       });
     }
-
-    function deleteUploadedMedia(fileId) {
-        return new Promise(function(resolve, reject) {
-          $.ajax({
-            url: uploadEndpoint,  // Utilise le même endpoint (ou un endpoint dédié si vous préférez)
-            type: 'POST',
-            data: { fileId: fileId, delete: true },
-            processData: true,
-            success: function(response) {
-              console.log('Suppression réussie pour le média ' + fileId, response);
-              resolve(response);
-            },
-            error: function(err) {
-              console.error('Erreur lors de la suppression du média ' + fileId, err);
-              reject(err);
-            }
-          });
-        });
-      }
-      
     
-    // Fonction d'initialisation du plugin MediaUploader
+    function finalizeAllUploads() {
+      filesToUpload.forEach(fileObj => {
+        if (fileObj.uploadedChunks === fileObj.totalChunks) {
+          finalizeUpload(fileObj.fileId)
+            .then(finalResponse => {
+              console.log('Fichier final réassemblé:', finalResponse);
+              updateTileProgress(fileObj.fileId, 100);
+            })
+            .catch(err => console.error('Erreur lors de la finalisation:', err));
+        }
+      });
+    }
+    
+    /******************************************
+     * SECTION 10 : SUPPRESSION DES MÉDIAS UPLOADÉS
+     ******************************************/
+    function deleteUploadedMedia(fileId) {
+      return new Promise(function(resolve, reject) {
+        $.ajax({
+          url: uploadEndpoint,
+          type: 'POST',
+          data: { fileId: fileId, delete: true },
+          processData: true,
+          success: function(response) {
+            console.log('Suppression réussie pour le média ' + fileId, response);
+            resolve(response);
+          },
+          error: function(err) {
+            console.error('Erreur lors de la suppression du média ' + fileId, err);
+            reject(err);
+          }
+        });
+      });
+    }
+      
+    /******************************************
+     * SECTION 11 : INITIALISATION DU PLUGIN MEDIA UPLOADER
+     ******************************************/
     function initMediaUploader(options = {}) {
       uploadEndpoint = options.uploadEndpoint || uploadEndpoint;
       injectHTML();
     
-      // Récupère nos éléments
       const selectBtn  = document.getElementById('select-media');
-      let   fileInput  = document.getElementById('media-uploader-input');
+      let fileInput  = document.getElementById('media-uploader-input');
       const uploadBtn  = document.getElementById('upload-media');
       const closeBtn   = document.getElementById('close-media-uploader');
     
-      // Handlers d’erreur
+      // Gestionnaire pour l'input de fichier
       function onFileInputChange(e) {
-        // on cache toute erreur précédente
         hideError();
-        // on traite les fichiers
         handleFiles(e.target.files);
-        // on ne recrée l’input *qu’après* avoir affiché une éventuelle erreur,
-        // afin que showError ait le temps d’agir sur l’élément actuel
+      
+        e.target.value = '';
         resetFileInput();
       }
+      
       function resetFileInput() {
         const newInput = fileInput.cloneNode(false);
-        // recopier les attributs
         newInput.id       = fileInput.id;
         newInput.multiple = fileInput.multiple;
         newInput.accept   = fileInput.accept;
@@ -443,37 +492,37 @@
         fileInput = newInput;
       }
     
-      // 1) on branche le listener de changement
+      // 1) Brancher le listener sur l'input
       fileInput.addEventListener('change', onFileInputChange);
     
-      // 2) Sélecteur de fichier
+      // 2) Sélection du fichier
       selectBtn.addEventListener('click', () => {
-        hideError();      // clear any old error before opening
+        hideError();
         fileInput.click();
       });
     
-      // 3) Upload
+      // 3) Upload des fichiers
       uploadBtn.addEventListener('click', () => {
         filesToUpload.forEach(f => {
-          if (f.uploadedChunks === 0) uploadFile(f);
-        });
+          if (!f.status || f.status !== 'uploaded') uploadFile(f);
+        });        
       });
     
-      // 4) Fermeture
+      // 4) Fermeture du modal
       closeBtn.addEventListener('click', () => {
         $('#media-uploader-modal').foundation('reveal', 'close');
-        hideError(); // on nettoie l’erreur pour la prochaine ouverture
+        hideError();
       });
     
       console.log("MediaUploader initialisé avec l'endpoint :", uploadEndpoint);
     }
     
-    
-    
-    // Expose le plugin globalement
+    /******************************************
+     * SECTION 12 : EXPOSITION DU PLUGIN
+     ******************************************/
     window.MediaUploader = {
       init: initMediaUploader,
       handleFiles: handleFiles
     };
-  })();
   
+})();
