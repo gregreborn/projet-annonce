@@ -333,8 +333,9 @@
           contentType: false,
           success(response) {
             console.log('Upload direct réussi :', response);
-            updateTileProgress(fileObj.fileId, 100);
             fileObj.status = 'uploaded';
+            fileObj.response = response; 
+            updateTileProgress(fileObj.fileId, 100);   
           },
           error(err) {
             console.error('Erreur upload direct :', err);
@@ -363,7 +364,10 @@
             return finalizeUpload(fileObj.fileId, getFinalFileName(fileObj.file));
           })
           .then(finalResponse => {
+            fileObj.response = finalResponse;
             console.log('Fichier final réassemblé:', finalResponse);
+            fileObj.status   = 'uploaded';
+            fileObj.response = finalResponse; 
             updateTileProgress(fileObj.fileId, 100);
           })
           .catch(err => {
@@ -426,17 +430,27 @@
     }
     
     function finalizeAllUploads() {
-      filesToUpload.forEach(fileObj => {
-        if (fileObj.uploadedChunks === fileObj.totalChunks) {
-          finalizeUpload(fileObj.fileId)
-            .then(finalResponse => {
-              console.log('Fichier final réassemblé:', finalResponse);
-              updateTileProgress(fileObj.fileId, 100);
-            })
-            .catch(err => console.error('Erreur lors de la finalisation:', err));
+      const poll = setInterval(() => {
+        console.log('polling, états =', filesToUpload.map(f=>({
+          id: f.fileId,
+          status: f.status,
+          hasResponse: !!f.response
+        })));
+        if (filesToUpload.every(f => f.status === 'uploaded' && f.response)) {
+          clearInterval(poll);
+          const medias = filesToUpload.map(f => ({
+            filePath:    f.response.filePath,
+            fileUrl:     f.response.fileUrl,
+            fileType:    f.response.fileType,
+            isThumbnail: '0'
+          }));
+          console.log('🎉 tous uplods finaux prêts, dispatch mediaUploader:uploadComplete', medias);
+          document.dispatchEvent(new CustomEvent('mediaUploader:uploadComplete', { detail: medias }));
         }
-      });
+      }, 200);
     }
+    
+    
     
     /******************************************
      * SECTION 10 : SUPPRESSION DES MÉDIAS UPLOADÉS
@@ -448,6 +462,7 @@
           type: 'POST',
           data: { fileId: fileId, delete: true },
           processData: true,
+          dataType: 'json',     
           success: function(response) {
             console.log('Suppression réussie pour le média ' + fileId, response);
             resolve(response);
@@ -505,7 +520,8 @@
       uploadBtn.addEventListener('click', () => {
         filesToUpload.forEach(f => {
           if (!f.status || f.status !== 'uploaded') uploadFile(f);
-        });        
+        });
+        finalizeAllUploads();        
       });
     
       // 4) Fermeture du modal

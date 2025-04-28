@@ -130,7 +130,8 @@ class annonceController extends Controller {
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
             return $this->renderChoixAnnonce();
         }
-    
+        error_log("POST keys: " . implode(", ", array_keys($_POST)));
+        error_log("uploadedMedia raw: " . ($_POST['uploadedMedia'] ?? 'NULL'));
         $fields = [
             'nomOrganisme', 'nom', 'prenom', 'titre', 'description',
             'telephone', 'courriel', 'site', 'dateDeDebutPub', 'dateDeFinPub',
@@ -193,7 +194,23 @@ class annonceController extends Controller {
                 }
             }
         }
-
+        // Process plugin media data if provided.
+        if (!empty($_POST['uploadedMedia'])) {
+            $uploadedMedias = json_decode($_POST['uploadedMedia'], true);
+            if ($uploadedMedias && is_array($uploadedMedias)) {
+                foreach ($uploadedMedias as $m) {
+                    $isThumb = (!empty($m['isThumbnail']) && $m['isThumbnail']) ? '1' : '0';
+                    // Enregistre le chunk final ou le filePath/fileUrl fourni par le plugin
+                    Media::saveMedia(
+                        $annonceId,
+                        $m['filePath'],
+                        $m['fileUrl'],
+                        $m['fileType'],
+                        $isThumb
+                    );
+                }
+            }
+        }
 
         $this->setFlashMessage("✅ Annonce créée avec succès !");
         header("Location: " . SERVER_ABSOLUTE_PATH . "/annonces");

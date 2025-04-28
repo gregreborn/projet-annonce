@@ -98,20 +98,32 @@ if (isset($_POST['finalize']) && $_POST['finalize'] == 'true') {
 
     $publicUrl = 'http://localhost/projet-annonce/public/uploads/' . $finalFileName;
 
+    // ➡️ Injection de la détection MIME juste avant le JSON
+    if (function_exists('mime_content_type')) {
+        $mime = mime_content_type($finalFilePath);
+    } else {
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime  = $finfo->file($finalFilePath);
+    }
+
+    // Stockage dans la session
     $_SESSION['uploadMediaFiles'][$fileId] = [
-        'fileUrl' => $publicUrl,
+        'fileUrl'   => $publicUrl,
         'extension' => $ext,
-        'fileName' => $originalFileName
+        'fileName'  => $originalFileName,
+        'fileType'  => $mime 
     ];
 
+    // Réponse finale incluant fileType
     echo json_encode([
-        'filePath' => $finalFilePath,
-        'fileUrl' => $publicUrl,
+        'filePath'  => $finalFilePath,
+        'fileUrl'   => $publicUrl,
         'extension' => $ext,
-        'fileType' => ''
+        'fileType'  => $mime 
     ]);
     exit;
 }
+
 
 // === Téléversement direct d'un fichier unique (pas de chunks) ===
 if (!isset($_POST['finalize']) && isset($_POST['totalChunks']) && intval($_POST['totalChunks']) === 1 && isset($_FILES['file'])) {

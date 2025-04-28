@@ -109,6 +109,7 @@
           });
         }
         document.addEventListener('mediaUploader:uploadComplete', function(e) {
+          console.log('🔔 mediaUploader:uploadComplete reçu', e.detail);
           const medias = e.detail; // tableau de {fileUrl,...}
           const preview = document.getElementById('media-preview-container');
           preview.innerHTML = '';
