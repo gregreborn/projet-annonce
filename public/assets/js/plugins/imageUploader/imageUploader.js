@@ -185,6 +185,32 @@
       aspectRatio: aspectRatio,
       viewMode: 1,
     });
+    // after `cropper = new Cropper(…)` and before you exit setActiveImage:
+    const slider = document.getElementById('rotate-slider');
+    const display = document.getElementById('rotate-value');
+
+    // reset slider when you load a new image
+    slider.value   = 0;
+    display.textContent = '0°';
+
+    // listen to slider
+    slider.addEventListener('input', () => {
+      const angle = Number(slider.value);
+      cropper.rotateTo(angle);
+      display.textContent = angle + '°';
+    });
+    
+    // Anchor buttons
+    document
+    .querySelectorAll('#rotate-anchors button')
+    .forEach(btn => {
+      btn.addEventListener('click', () => {
+        const angle = Number(btn.dataset.angle);
+        cropper.rotateTo(angle);
+        slider.value = angle;
+        display.textContent = angle + '°';
+      });ki
+    });
   }
 
   // Confirm crop for the active image
@@ -301,6 +327,26 @@
             <div id="cropper-section">
               <div id="cropper-placeholder">Sélectionnez une image à recadrer</div>
               <img id="cropper-image" src="" alt="Cropper Image" style="display:none;">
+              <div style="margin-top:8px;">
+                Rotate: 
+                <input 
+                  type="range" 
+                  id="rotate-slider" 
+                  min="-180" 
+                  max="180" 
+                  value="0" 
+                  style="width:200px;" 
+                />
+                <span id="rotate-value">0°</span>
+              </div>
+              <div id="rotate-anchors" style="margin-top: 4px;">
+                <button type="button" data-angle="0">0°</button>
+                <button type="button" data-angle="45">45°</button>
+                <button type="button" data-angle="90">90°</button>
+                <button type="button" data-angle="180">180°</button>
+                <button type="button" data-angle="-45">-45°</button>
+                <button type="button" data-angle="-90">-90°</button>
+              </div>
             </div>
           </div>
           <div id="button-group" style="text-align: right; margin-top: 10px;">
