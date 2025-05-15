@@ -1,46 +1,80 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test MediaUploader</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Test FileExplorer</title>
 
-  <!-- Foundation + Custom Styles -->
-  <link rel="stylesheet" href="assets/libs/foundation/css/foundation.min.css">
-  <link rel="stylesheet" href="assets/js/plugins/mediaUploader/mediaUploader.css">
+  <!-- Foundation CSS -->
+  <link
+    rel="stylesheet"
+    href="assets/libs/foundation/css/foundation.min.css"
+  />
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- FileExplorer CSS -->
+  <link
+    rel="stylesheet"
+    href="assets/js/plugins/fileExplorer/fileExplorer.css"
+  />
+
+  <!-- Material Icons -->
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
 </head>
 <body>
 
   <div class="row">
     <div class="columns small-12 text-center">
-      <h2>Test de MediaUploader</h2>
-      <button id="open-media-uploader" class="button success">Ouvrir la modale</button>
+      <h2>Test de FileExplorer</h2>
+      <button id="open-file-explorer" class="button primary">
+        Ouvrir le File Explorer
+      </button>
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- FileExplorer Modal (Foundation Reveal) -->
+  <div id="file-explorer-modal" class="reveal-modal" data-reveal>
+    <div id="file-explorer-container"><!-- renders here --></div>
+    <a class="close-reveal-modal">&#215;</a>
+  </div>
+
+  <!-- JS Dependencies -->
   <script src="assets/libs/jquery.min.js"></script>
   <script src="assets/libs/foundation/js/foundation.min.js"></script>
-  <script src="assets/js/plugins/mediaUploader/mediaUploader.js"></script>
+
+  <!-- Mustache templating from CDN -->
+  <script src="https://unpkg.com/mustache@4.2.0/mustache.min.js"></script>
+
+  <!-- FileExplorer Plugin -->
+  <script src="assets/js/plugins/fileExplorer/fileExplorer.js"></script>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      if (typeof MediaUploader !== 'undefined') {
-        MediaUploader.init({
-          uploadEndpoint: 'assets/js/plugins/mediaUploader/media_endpoint.php'
-        });
+    // Init Foundation
+    $(document).foundation();
 
-        const openMediaBtn = document.getElementById('open-media-uploader');
-        if (openMediaBtn) {
-          openMediaBtn.addEventListener('click', function () {
-            $('#media-uploader-modal').foundation('reveal', 'open');
-          });
-        }
-      }
-    });
+    // Build an absolute base URL that skips your front-controller
+    const PUBLIC_BASE = window.location.origin + window.location.pathname
+      .split('/')
+      .slice(0, 3) // ["", "projet-annonce", "public"]
+      .join('/');
+
+    if (typeof FileExplorer !== 'undefined') {
+      FileExplorer.init({
+        endpoint:     PUBLIC_BASE + '/assets/js/plugins/fileExplorer/explorer_endpoint.php',
+        templateBase: PUBLIC_BASE + '/assets/js/plugins/fileExplorer/templates/',
+        container:    '#file-explorer-container',
+        rootFolderId: null
+      });
+
+      // Wire up the “open” button
+      $('#open-file-explorer').on('click', function () {
+        $('#file-explorer-modal').foundation('reveal', 'open');
+      });
+    } else {
+      console.error('FileExplorer not loaded – check your script path.');
+    }
   </script>
 </body>
 </html>

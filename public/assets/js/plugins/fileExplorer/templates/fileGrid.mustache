@@ -1,0 +1,29 @@
+{{#folders}}
+<div class="cell small-3 file-item" data-id="{{id}}" data-type="folder">
+  <div class="card">
+    <div class="card-divider">
+      <i class="material-icons">folder</i>
+      <span class="actions">
+        <i class="material-icons fe-rename" title="Renommer">edit</i>
+        <i class="material-icons fe-delete" title="Supprimer">delete</i>
+      </span>
+    </div>
+    <div class="card-section"><p>{{name}}</p></div>
+  </div>
+</div>
+{{/folders}}
+
+{{#files}}
+<div class="cell small-3 file-item" data-id="{{id}}" data-type="file">
+  <div class="card">
+    <div class="card-divider">
+      <i class="material-icons">insert_drive_file</i>
+      <span class="actions">
+        <i class="material-icons fe-rename" title="Renommer">edit</i>
+        <i class="material-icons fe-delete" title="Supprimer">delete</i>
+      </span>
+    </div>
+    <div class="card-section"><p>{{name}}</p></div>
+  </div>
+</div>
+{{/files}}

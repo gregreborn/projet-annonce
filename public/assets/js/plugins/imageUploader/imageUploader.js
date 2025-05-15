@@ -8,7 +8,6 @@
   let activeImageIndex = null;
   let cropper = null;
 
- 
 
   // Process an image file (resize & optionally compress)
   function processImage(file) {
@@ -89,7 +88,6 @@
           removeImage(i);
         });
         tile.appendChild(removeBtn);
-  
         // Bouton "Définir comme miniature" (étoile)
         const thumbnailBtn = document.createElement("button");
         thumbnailBtn.innerHTML = "★";
@@ -140,7 +138,6 @@
     }
   }
   
-
   // Remove an image at a given index
   function removeImage(index) {
     images.splice(index, 1);
@@ -209,7 +206,7 @@
         cropper.rotateTo(angle);
         slider.value = angle;
         display.textContent = angle + '°';
-      });ki
+      });
     });
   }
 
@@ -278,7 +275,7 @@
         return img;
       });
     });
-  
+
     // Wait for all uploads to finish
     Promise.all(uploadPromises)
       .then(uploadedImages => {
@@ -307,86 +304,88 @@
   }
   
 
-   // Initialiser le plugin et attacher les écouteurs
   function initImageUploader(options = {}) {
-     // Override the default uploadEndpoint if provided
-     uploadEndpoint = options.uploadEndpoint || uploadEndpoint;
-
+    // Override the default uploadEndpoint if provided
+    uploadEndpoint = options.uploadEndpoint || uploadEndpoint;
+  
     // Injection dynamique du HTML si nécessaire
     if (!document.getElementById("image-uploader-modal")) {
       const modalHTML = `
-      <div id="image-uploader-modal" class="reveal-modal" data-reveal aria-hidden="true" role="dialog">
-        <div class="modal">
-          <a class="close-reveal-modal" aria-label="Close">&#215;</a>
-          <h3>Télécharger et recadrer des images</h3>
-          <input type="file" id="image-uploader-input" multiple accept="image/*" style="display:none;">
-          <div id="upload-container">
-            <div id="image-list-container">
-              <!-- Les tuiles seront insérées ici -->
-            </div>
-            <div id="cropper-section">
-              <div id="cropper-placeholder">Sélectionnez une image à recadrer</div>
-              <img id="cropper-image" src="" alt="Cropper Image" style="display:none;">
-              <div style="margin-top:8px;">
-                Rotate: 
-                <input 
-                  type="range" 
-                  id="rotate-slider" 
-                  min="-180" 
-                  max="180" 
-                  value="0" 
-                  style="width:200px;" 
-                />
-                <span id="rotate-value">0°</span>
+        <div id="image-uploader-modal" class="reveal-modal" data-reveal aria-hidden="true" role="dialog">
+          <div class="modal">
+            <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+            <h3>Télécharger et recadrer des images</h3>
+            <input type="file" id="image-uploader-input" multiple accept="image/*" style="display:none;">
+            <div id="upload-container">
+              <div id="image-list-container">
+                <!-- Les tuiles seront insérées ici -->
               </div>
-              <div id="rotate-anchors" style="margin-top: 4px;">
-                <button type="button" data-angle="0">0°</button>
-                <button type="button" data-angle="45">45°</button>
-                <button type="button" data-angle="90">90°</button>
-                <button type="button" data-angle="180">180°</button>
-                <button type="button" data-angle="-45">-45°</button>
-                <button type="button" data-angle="-90">-90°</button>
+              <div id="cropper-section">
+                <div id="cropper-placeholder">Sélectionnez une image à recadrer</div>
+                <img id="cropper-image" src="" alt="Cropper Image" style="display:none;">
+                <div style="margin-top:8px;">
+                  Rotate: 
+                  <input 
+                    type="range" 
+                    id="rotate-slider" 
+                    min="-180" 
+                    max="180" 
+                    value="0" 
+                    style="width:200px;" 
+                  />
+                  <span id="rotate-value">0°</span>
+                </div>
+                <div id="rotate-anchors" style="margin-top: 4px;">
+                  <button type="button" data-angle="0">0°</button>
+                  <button type="button" data-angle="45">45°</button>
+                  <button type="button" data-angle="90">90°</button>
+                  <button type="button" data-angle="180">180°</button>
+                  <button type="button" data-angle="-45">-45°</button>
+                  <button type="button" data-angle="-90">-90°</button>
+                </div>
               </div>
             </div>
-          </div>
-          <div id="button-group" style="text-align: right; margin-top: 10px;">
-            <button id="confirm-crop" class="button success">Confirmer le recadrage</button>
-            <button id="save-changes" class="button success">Enregistrer les modifications</button>
-            <button id="close-uploader" class="button alert">Fermer</button>
+            <div id="button-group" style="text-align: right; margin-top: 10px;">
+              <button id="confirm-crop" class="button success">Confirmer le recadrage</button>
+              <button id="save-changes" class="button success">Enregistrer les modifications</button>
+              <button id="close-uploader" class="button alert">Fermer</button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="reveal-modal-bg"></div>
+        <div class="reveal-modal-bg"></div>
       `;
       const container = document.createElement("div");
       container.innerHTML = modalHTML;
       document.body.appendChild(container);
-      $(document).foundation();
+      $(document).foundation(); // Re-initialize Foundation Reveal
     }
   
     const modalEl = document.getElementById("image-uploader-modal");
     const fileInput = document.getElementById("image-uploader-input");
     const listContainer = document.getElementById("image-list-container");
-    const saveChangesBtn = document.getElementById("save-changes");
-    if (saveChangesBtn) {
-      saveChangesBtn.addEventListener("click", finalizeSelection);
-    }
+  
     if (!modalEl || !fileInput || !listContainer) {
       console.error("ImageUploader: Missing required elements.");
       return;
     }
+  
+    // File input change
     fileInput.addEventListener("change", function (e) {
       handleFiles(e.target.files);
-      fileInput.value = "";
+      fileInput.value = ""; // Reset so same file can be reselected
     });
+  
+    // Drag & drop events
     listContainer.addEventListener("dragover", function (e) {
       e.preventDefault();
       listContainer.classList.add("dragover");
     });
+  
     listContainer.addEventListener("dragleave", function (e) {
       e.preventDefault();
       listContainer.classList.remove("dragover");
     });
+  
     listContainer.addEventListener("drop", function (e) {
       e.preventDefault();
       listContainer.classList.remove("dragover");
@@ -394,13 +393,34 @@
         handleFiles(e.dataTransfer.files);
       }
     });
-    const confirmBtn = document.querySelector("#confirm-crop");
+  
+    // Confirm crop
+    const confirmBtn = document.getElementById("confirm-crop");
     if (confirmBtn) {
       confirmBtn.addEventListener("click", confirmCrop);
     }
+  
+    // Save changes
+    const saveChangesBtn = document.getElementById("save-changes");
+    if (saveChangesBtn) {
+      saveChangesBtn.addEventListener("click", finalizeSelection);
+    }
+  
+    // Fermer button
+    const closeBtn = document.getElementById("close-uploader");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        $('#image-uploader-modal').foundation('reveal', 'close');
+      });
+    }
+  
+    // Update image list
     updateImageList();
+  
+    // Update layout on resize
     window.addEventListener("resize", updateImageList);
   }
+  
 
   // Updated uploadImage: uses the configurable uploadEndpoint
   function uploadImage(blob, filename) {

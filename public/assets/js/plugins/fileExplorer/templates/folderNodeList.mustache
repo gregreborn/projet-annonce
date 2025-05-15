@@ -1,0 +1,12 @@
+<ul class="folder-list">
+  {{#folders}}
+  <li class="folder-node" data-id="{{id}}">
+    <span class="toggle"><i class="material-icons">chevron_right</i></span>
+    <span class="folder-name">{{name}}</span>
+    <span class="actions">
+      <i class="material-icons fe-rename" title="Renommer">edit</i>
+      <i class="material-icons fe-delete" title="Supprimer">delete</i>
+    </span>
+  </li>
+  {{/folders}}
+</ul>
