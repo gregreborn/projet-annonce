@@ -1,29 +1,41 @@
+{{! fileGrid.mustache }}
+
 {{#folders}}
-<div class="cell small-3 file-item" data-id="{{id}}" data-type="folder">
-  <div class="card">
-    <div class="card-divider">
-      <i class="material-icons">folder</i>
-      <span class="actions">
-        <i class="material-icons fe-rename" title="Renommer">edit</i>
-        <i class="material-icons fe-delete" title="Supprimer">delete</i>
-      </span>
+  <div class="small-12 medium-6 large-3 columns file-item" data-id="{{id}}" data-type="folder">
+    <div class="card">
+      <div class="card-divider">
+        <i class="material-icons">folder</i>
+        <span class="actions">
+          <i class="material-icons fe-rename" title="Renommer">edit</i>
+          <i class="material-icons fe-delete" title="Supprimer">delete</i>
+        </span>
+      </div>
+      <div class="card-section content">
+        <div class="info">
+          <span class="name">{{name}}</span>
+          <span class="meta"><!-- date si dispo --></span>
+        </div>
+      </div>
     </div>
-    <div class="card-section"><p>{{name}}</p></div>
   </div>
-</div>
 {{/folders}}
 
 {{#files}}
-<div class="cell small-3 file-item" data-id="{{id}}" data-type="file">
-  <div class="card">
-    <div class="card-divider">
-      <i class="material-icons">insert_drive_file</i>
-      <span class="actions">
-        <i class="material-icons fe-rename" title="Renommer">edit</i>
-        <i class="material-icons fe-delete" title="Supprimer">delete</i>
-      </span>
+  <div class="small-12 medium-6 large-3 columns file-item" data-id="{{id}}" data-type="file">
+    <div class="card">
+      <div class="card-divider">
+        <i class="material-icons">insert_drive_file</i>
+        <span class="actions">
+          <i class="material-icons fe-rename" title="Renommer">edit</i>
+          <i class="material-icons fe-delete" title="Supprimer">delete</i>
+        </span>
+      </div>
+      <div class="card-section content">
+        <div class="info">
+          <span class="name">{{name}}</span>
+          <span class="meta">{{size_bytes}} octets</span>
+        </div>
+      </div>
     </div>
-    <div class="card-section"><p>{{name}}</p></div>
   </div>
-</div>
 {{/files}}

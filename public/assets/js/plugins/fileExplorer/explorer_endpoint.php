@@ -33,29 +33,54 @@ try {
 exit;
 
 function listAction() {
-    // Determine parent ID (null => root)
-    $fid = isset($_GET['folderId']) && $_GET['folderId'] !== ''
+    // 1) determine parent folder ID (null => root)
+    $fid = (isset($_GET['folderId']) && $_GET['folderId'] !== '')
          ? intval($_GET['folderId'])
          : null;
 
-    // Breadcrumb path
+    // 2) build breadcrumb trail
     $path = buildPath($fid);
 
-    // Query folders
+    // 3) fetch folders (including their updated_at column)
     if ($fid === null) {
-        $folders = Db::query("SELECT id,name FROM folders WHERE parent_id IS NULL ORDER BY name");
+        $folders = Db::query(
+            "SELECT id, name, updated_at 
+             FROM folders 
+             WHERE parent_id IS NULL 
+             ORDER BY name"
+        );
     } else {
-        $folders = Db::query("SELECT id,name FROM folders WHERE parent_id = ? ORDER BY name", [$fid]);
+        $folders = Db::query(
+            "SELECT id, name, updated_at 
+             FROM folders 
+             WHERE parent_id = ? 
+             ORDER BY name",
+            [ $fid ]
+        );
     }
 
-    // Query files
+    // 4) fetch files, alias created_at → updated_at
+    //    (you can switch to a real updated_at if you add that column later)
     $files = Db::query(
-        "SELECT id, file_name AS name, file_path AS path, mime_type, size_bytes"
-      . " FROM files WHERE folder_id = ? ORDER BY file_name",
-        [$fid]
+        "SELECT
+           id,
+           file_name    AS name,
+           file_path    AS path,
+           mime_type,
+           size_bytes,
+           created_at   AS updated_at
+         FROM files
+         WHERE folder_id = ?
+         ORDER BY file_name",
+        [ $fid ]
     );
 
-    echo json_encode(['path'=>$path,'folders'=>$folders,'files'=>$files]);
+    // 5) return JSON
+    echo json_encode([
+      'path'    => $path,
+      'folders' => $folders,
+      'files'   => $files
+    ]);
 }
 
 function buildPath($fid) {

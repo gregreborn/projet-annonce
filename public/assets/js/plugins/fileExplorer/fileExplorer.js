@@ -12,8 +12,13 @@
     templates: {
       tree: '',
       grid: '',
+      list:        '',
       breadcrumbs: ''
     },
+
+    isListView: false,   // par défaut : mode « Grille »
+    lastFolders: [],     // contiendra data.folders après chaque loadFolder
+    lastFiles: [],       // contiendra data.files après chaque loadFolder
 
     init: function (options) {
       // Merge user config (must include endpoint and templateBase)
@@ -29,51 +34,91 @@
     },
 
     loadTemplates: function () {
-      var self = this;
-      var basePath = this.config.templateBase;
+    var self = this;
+    var basePath = this.config.templateBase;
 
-      Promise.all([
-        fetch(basePath + 'folderNodeList.mustache').then(function (r) { return r.text(); }),
-        fetch(basePath + 'fileGrid.mustache').then(function (r) { return r.text(); }),
-        fetch(basePath + 'breadcrumbs.mustache').then(function (r) { return r.text(); })
-      ]).then(function (tpls) {
-        self.templates.tree        = tpls[0];
-        self.templates.grid        = tpls[1];
-        self.templates.breadcrumbs = tpls[2];
+    Promise.all([
+      fetch(basePath + 'folderNodeList.mustache').then(r=>r.text()),
+      fetch(basePath + 'fileGrid.mustache').then(r=>r.text()),
+      fetch(basePath + 'fileList.mustache').then(r=>r.text()), 
+      fetch(basePath + 'breadcrumbs.mustache').then(r=>r.text())
+    ])
+    .then(function (tpls) {
+      self.templates.tree        = tpls[0];
+      self.templates.grid        = tpls[1];
+      self.templates.list        = tpls[2]; 
+      self.templates.breadcrumbs = tpls[3];
 
-        // Build UI and load initial data
-        self.buildSkeleton();
-        self.loadTree();
-        self.loadFolder(self.config.rootFolderId);
-        self.bindEvents();
-      }).catch(function (err) {
-        console.error('FileExplorer: Error loading templates:', err);
-      });
-    },
+      // 1) on construit l’UI
+      self.buildSkeleton();
 
-    buildSkeleton: function () {
-      var container = document.querySelector(this.config.container);
-      container.innerHTML = `
-        <div class="row">
-          <div class="large-3 columns" id="fe-tree"></div>
-          <div class="large-9 columns">
-            <nav class="breadcrumbs" id="fe-breadcrumbs"></nav>
-            <div class="button-group grid-x grid-margin-x align-middle" id="fe-toolbar">
-              <button class="button small" id="fe-new-folder">+ Dossier</button>
-              <button class="button small" id="fe-upload-file">+ Fichier</button>
-              <input type="file" id="fe-file-input" style="display:none" />
-    
-              <button class="button small" id="fe-upload-folder">+ Dossier (Upload)</button>
-              <input type="file" id="fe-folder-input" webkitdirectory directory multiple style="display:none" />
-    
-              <input type="text" id="fe-search" placeholder="Rechercher…" class="cell auto" />
-            </div>
-            <div class="grid-x grid-margin-x" id="fe-grid"></div>
+      // 2) on bind aussitôt les toggles de vue
+      self.bindViewToggle();
+
+      // 3) on charge les données
+      self.loadTree();
+      self.loadFolder(self.config.rootFolderId);
+
+      // 4) puis tous les autres events (drag/drop, mkdir, upload…)
+      self.bindEvents();
+    })
+    .catch(function (err) {
+      console.error('FileExplorer: Error loading templates:', err);
+    });
+  },
+
+buildSkeleton: function () {
+  var container = document.querySelector(this.config.container);
+  container.innerHTML = `
+    <div class="row">
+      <!-- Arborescence -->
+      <div class="large-3 columns" id="fe-tree"></div>
+
+      <!-- Zone principale -->
+      <div class="large-9 columns">
+
+        <!-- Breadcrumbs -->
+        <nav class="breadcrumbs" id="fe-breadcrumbs"></nav>
+
+        <!-- Toolbar -->
+        <div id="fe-toolbar" class="grid-x grid-padding-x align-middle">
+          <!-- Grille / Liste -->
+          <div class="cell auto button-group">
+            <button id="fe-view-grid" class="button primary">Grille</button>
+            <button id="fe-view-list" class="button secondary hollow">Liste</button>
           </div>
+
+          <!-- hidden file inputs -->
+          <input type="file" id="fe-file-input" style="display:none">
+          <input type="file" id="fe-folder-input" webkitdirectory directory style="display:none">
+
+          <!-- Actions CRUD (updated labels) -->
+          <div class="cell auto button-group">
+            <button id="fe-new-folder"  class="button secondary">Nouveau dossier</button>
+            <button id="fe-upload-file" class="button secondary">Ajouter un fichier</button>
+            <button id="fe-upload-folder" class="button secondary">Ajouter un dossier</button>
+          </div>
+
+          <!-- Recherche -->
+         <div class="cell large-4">
+            <div class="input-group">
+              <!-- input first… -->
+              <input class="input-group-field" id="fe-search" type="search" placeholder="Rechercher…">
+              <!-- …then the icon -->
+              <span class="input-group-label">
+                <i class="material-icons">search</i>
+              </span>
+            </div>
+         </div>
         </div>
-      `;
-    },
-    
+
+        <!-- your combined grid/list container -->
+        <div id="fe-grid" class="row"></div>
+      </div>
+    </div>
+  `;
+},
+
 
     fetchList: function (folderId) {
       var url = this.config.endpoint + '?action=list';
@@ -96,17 +141,37 @@
       });
     },
 
-    loadFolder: function (folderId) {
-      var self = this;
-      this.fetchList(folderId).then(function (data) {
-        console.log('FileExplorer.loadFolder data for', folderId, data);
-        self.currentFolderId = folderId;
-        self.renderBreadcrumbs(data.path);
-        self.renderGrid(data.folders, data.files);
-      }).catch(function (err) {
-        console.error('FileExplorer: loadFolder error', err);
-      });
-    },
+  loadFolder: function(folderId) {
+    var self = this;
+    this.fetchList(folderId).then(function(data) {
+      // 1) Mémoriser les données reçues pour le toggle Grille/Liste
+      self.lastFolders    = data.folders;
+      self.lastFiles      = data.files;
+
+      // 2) Mémoriser l’id courant
+      self.currentFolderId = folderId;
+
+      // 3) Mettre à jour les breadcrumbs
+      self.renderBreadcrumbs(data.path);
+
+      // 4) Afficher soit la grille soit la liste
+      self.renderView();
+
+      // 5) Surligner le dossier actif dans l’arborescence
+      if (self.currentFolderId !== null) {
+        document
+          .querySelectorAll('#fe-tree .folder-node')
+          .forEach(function(li) {
+            var isActive = li.getAttribute('data-id') === String(self.currentFolderId);
+            li.classList.toggle('active', isActive);
+          });
+      }
+    }).catch(function(err) {
+      console.error('FileExplorer: loadFolder error', err);
+    });
+  },
+
+
 
     renderBreadcrumbs: function (pathArray) {
       var html = Mustache.render(this.templates.breadcrumbs, { path: pathArray });
@@ -120,11 +185,87 @@
       if (grid) grid.innerHTML = html;
     },
 
-    bindEvents: function () {
-      var self = this;
-      var treeEl = document.getElementById('fe-tree');
-      var gridEl = document.getElementById('fe-grid');
-    
+  bindViewToggle: function() {
+      var container = document.querySelector(this.config.container);
+      var btnGrid   = document.getElementById('fe-view-grid');
+      var btnList   = document.getElementById('fe-view-list');
+
+    btnGrid.addEventListener('click', ()=>{
+      this.isListView = false;
+      btnGrid.classList.add('primary');
+      btnGrid.classList.remove('secondary','hollow');
+      btnList.classList.add('secondary','hollow');
+      btnList.classList.remove('primary');
+      this.renderView();
+    });
+
+    btnList.addEventListener('click', ()=>{
+      this.isListView = true;
+      btnList.classList.add('primary');
+      btnList.classList.remove('secondary','hollow');
+      btnGrid.classList.add('secondary','hollow');
+      btnGrid.classList.remove('primary');
+      this.renderView();
+    });
+  },
+
+renderView: function() {
+  var gridEl = document.getElementById('fe-grid');
+
+  if (this.isListView) {
+    // drop the Foundation row so the table spans full width
+    gridEl.classList.remove('row');
+    gridEl.innerHTML = Mustache.render(this.templates.list, {
+      folders: this.lastFolders,
+      files:   this.lastFiles
+    });
+  } else {
+    // make it a row again so each .columns inside fileGrid lines up
+    gridEl.classList.add('row');
+    gridEl.innerHTML = Mustache.render(this.templates.grid, {
+      folders: this.lastFolders,
+      files:   this.lastFiles
+    });
+  }
+},
+
+
+  bindEvents: function () {
+    var self = this;
+    var treeEl = document.getElementById('fe-tree');
+    var gridEl = document.getElementById('fe-grid');
+  
+    var searchBtn = document.querySelector('#fe-toolbar .search');
+    var searchInput = document.getElementById('fe-search');
+    function doSearch() {
+      var q = searchInput.value.trim();
+      if (!q) return self.loadFolder(self.currentFolderId);
+      fetch(self.config.endpoint + '?action=search&q=' + encodeURIComponent(q))
+        .then(r => r.json())
+        .then(data => {
+          self.renderGrid([], data.results);
+          document.getElementById('fe-breadcrumbs').innerHTML = `Résultats pour “${q}”`;
+        });
+      }
+      if (searchBtn) searchBtn.addEventListener('click', doSearch);
+      const searchIcon = document.querySelector('#fe-toolbar .input-group-label');
+      if (searchIcon) searchIcon.addEventListener('click', doSearch);
+      searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') doSearch();
+      });
+
+      // 🔄 Breadcrumbs click
+      var bc = document.getElementById('fe-breadcrumbs');
+      if (bc) {
+        bc.addEventListener('click', function(e) {
+          var link = e.target.closest('a[data-id]');
+          if (!link) return;
+          e.preventDefault();
+          var raw = link.getAttribute('data-id');
+          var fid = raw === '' ? null : raw;
+          self.loadFolder(fid);
+        });
+      }
       // Expand/collapse tree
       treeEl.addEventListener('click', function (e) {
         var toggle = e.target.closest('.toggle');
@@ -211,7 +352,6 @@
       folderInput.addEventListener('change', async function(e) {
         const files = Array.from(e.target.files);
         if (!files.length) return;
-    
         const dirSet = new Set();
         files.forEach(f => {
           const segments = f.webkitRelativePath.split('/');
@@ -312,7 +452,7 @@
         const item = e.target.closest('.file-item, .folder-node');
         const id   = item.getAttribute('data-id');
         const type = item.dataset.type || 'folder';
-        const oldName = item.querySelector(type==='folder'?'.folder-name':'p').textContent;
+        const oldName = item.querySelector('.name').textContent;
         const newName = prompt(`Nouveau nom pour ce ${type}:`, oldName);
         if (!newName || newName === oldName) return;
         
@@ -373,7 +513,7 @@
             document.getElementById('fe-breadcrumbs').innerHTML = `Résultats pour “${q}”`;
           });
       });
-    }
+  }
     
   };
 
