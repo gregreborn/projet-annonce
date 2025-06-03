@@ -1,40 +1,47 @@
+/* fichier : c:\wamp64\www\projet-annonce\public\assets\js\plugins\fileExplorer\fileExplorer.css */
+
 /*------------------------------------------------------------
-  1) LIST VIEW (when #fe-grid does NOT have the "row" class)
-     → we style every .file-item as a flex row, full-width, etc.
+  SECTION 1 : Vue en mode Liste (lorsque #fe-grid n'a PAS la classe "row")
 -------------------------------------------------------------*/
-/* Note: "list view" = #fe-grid no longer has class="row" */
+
+/* Le conteneur liste occupe toute la largeur et supprime les padding hérités */
 #fe-grid:not(.row) {
-  display: block; /* so the table (or list items) span full width */
-  padding: 0;     /* remove any leftover padding from a Foundation row */
+  display: block;
+  padding: 0;
 }
 
-/* If you are rendering the <table class="file-list"> in list mode: */
+/* Style du tableau en mode liste */
 #fe-grid:not(.row) .file-list {
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
 }
+
 #fe-grid:not(.row) .file-list thead {
   background: #fafafa;
   border-bottom: 1px solid #ddd;
 }
+
 #fe-grid:not(.row) .file-list th,
 #fe-grid:not(.row) .file-list td {
   padding: 0.75rem;
   text-align: left;
   font-size: 0.9rem;
 }
+
 #fe-grid:not(.row) .file-list tbody tr:hover {
   background: #f1f3f4;
   cursor: pointer;
 }
-/* Icon + text inline in the table */
+
+/* Affichage en ligne des icônes et du texte */
 #fe-grid:not(.row) .file-list i.material-icons {
   vertical-align: middle;
   margin-right: 0.5rem;
   font-size: 1.2rem;
 }
-/* Allocate widths to each column */
+
+/* Largeur des colonnes du tableau */
 #fe-grid:not(.row) .file-list thead tr th:nth-child(1),
 #fe-grid:not(.row) .file-list tbody tr td:nth-child(1) {
   width: 40%;
@@ -55,7 +62,8 @@
 #fe-grid:not(.row) .file-list tbody tr td:nth-child(5) {
   width: 5%;
 }
-/* Ellipsis for long file/folder names */
+
+/* Troncature des noms trop longs */
 #fe-grid:not(.row) .file-list .name {
   display: inline-block;
   max-width: 100%;
@@ -67,15 +75,14 @@
 
 
 /*------------------------------------------------------------
-  2) GRID VIEW (when #fe-grid has class="row")
-     → we want each .file-item to behave like a Foundation column
-       with appropriate card styling, spacing, etc.
+  SECTION 2 : Vue en mode Grille (lorsque #fe-grid a la classe "row")
 -------------------------------------------------------------*/
-/* add a small gap between each "column" */
+/* Espacement entre chaque élément en grille */
 #fe-grid.row .file-item {
   margin-bottom: 1rem;
 }
-/* if your fileGrid.mustache uses something like <div class="small-12 medium-6 large-3 columns file-item">… */
+
+/* Style des cartes en mode grille */
 #fe-grid.row .file-item .card {
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   border: 1px solid #e0e0e0;
@@ -85,11 +92,14 @@
 #fe-grid.row .file-item .card:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
-/* If your card markup has a .card-divider and .card-section */
+
+/* Style des icônes dans la partie supérieure des cartes */
 #fe-grid.row .file-item .card-divider i {
   font-size: 2rem;
   padding: 1rem 0;
 }
+
+/* Style du contenu textuel à l'intérieur des cartes */
 #fe-grid.row .file-item .card-section {
   font-size: 0.85rem;
   padding: 0.5rem;
@@ -100,9 +110,9 @@
 
 
 /*------------------------------------------------------------
-  3) TOOLBAR + BREADCRUMBS + TREE (shared both modes)
+  SECTION 3 : Barre d’outils, fil d’Ariane et Arborescence
 -------------------------------------------------------------*/
-/* Breadcrumbs styled like “pills” */
+/* Style du fil d’Ariane (breadcrumbs) en forme de pilules */
 #fe-breadcrumbs {
   margin-bottom: 1rem;
 }
@@ -119,7 +129,7 @@
   background: #cacaca;
 }
 
-/* Toolbar Buttons & Inputs */
+/* Style de la barre d’outils */
 #fe-toolbar {
   max-width: 900px;
   margin: 0 auto 1rem;
@@ -141,6 +151,7 @@
 #fe-toolbar .button.secondary.hollow:hover {
   background-color: rgba(26,115,232,0.1);
 }
+
 #fe-toolbar .input-group {
   display: inline-flex;
   align-items: center;
@@ -153,16 +164,24 @@
   margin-left: 0.5rem;
 }
 
-/* Tree view adjustments */
+
+/*------------------------------------------------------------
+  SECTION 4 : Ajustements de l'Arborescence (Tree View) et Éléments Communs
+-------------------------------------------------------------*/
+/* Style des éléments de l'arborescence */
 .folder-list li {
   padding: 0.25rem 0.5rem;
 }
 .folder-list li:hover {
   background: #f0f0f0;
 }
+
+/* Décalage pour les sous-dossiers lorsqu'un dossier est déployé */
 .folder-list li.expanded > ul {
   margin-left: 1rem;
 }
+
+/* Surlignage du dossier actif */
 #fe-tree .folder-node.active {
   background: #e6f0fa;
 }
@@ -171,13 +190,13 @@
   border-radius: 3px;
 }
 
-/* A little shadow on every card (both modes) */
+/* Ombre légère sur chaque carte (tous modes confondus) */
 #fe-grid .card {
   border-radius: 4px;
-  /* border & box-shadow already set above */
+  /* La bordure et l'ombre sont définies dans d'autres sections */
 }
 
-/* ensure actions icons in list display on hover */
+/* Masquer les icônes d'actions dans la vue liste et les afficher au survol */
 #fe-grid .file-item .actions {
   opacity: 0;
   transition: opacity 0.2s;
@@ -186,12 +205,12 @@
   opacity: 1;
 }
 
-/* Highlight active row in list mode */
+/* Surlignage de la ligne active en mode liste */
 #fe-grid:not(.row) .file-item.active {
   background: #f5f5f5;
 }
 
-/* If you had any extra “.row” padding inherited—remove it */
+/* Réinitialisation des marges et padding indésirables */
 #fe-grid,
 #fe-tree {
   padding: 0;
