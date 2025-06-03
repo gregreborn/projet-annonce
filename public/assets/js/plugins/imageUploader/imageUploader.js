@@ -347,7 +347,10 @@
             </div>
             <div id="button-group" style="text-align: right; margin-top: 10px;">
               <button id="confirm-crop" class="button success">Confirmer le recadrage</button>
-              <button id="save-changes" class="button success">Enregistrer les modifications</button>
+              <button id="save-changes" class="button success">📤 Sauvegarder et ajouter à l’annonce</button>
+              <p style="color: #e67e22; font-size: 0.9rem; margin-top: 10px;">
+              ⚠️ N'oubliez pas de cliquer sur <strong>“Sauvegarder”</strong> pour valider vos images avant de soumettre le formulaire.
+              </p>
               <button id="close-uploader" class="button alert">Fermer</button>
             </div>
           </div>
@@ -409,11 +412,18 @@
     // Fermer button
     const closeBtn = document.getElementById("close-uploader");
     if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        $('#image-uploader-modal').foundation('reveal', 'close');
-      });
-    }
-  
+    closeBtn.addEventListener("click", () => {
+      const hasUploaded = images.some(img => img.filePath && img.fileUrl);
+
+      if (!hasUploaded) {
+        alert("⚠️ Vous devez cliquer sur « Enregistrer les modifications » pour valider vos images avant de fermer.");
+        return;
+      }
+
+      $('#image-uploader-modal').foundation('reveal', 'close');
+    });
+  }
+
     // Update image list
     updateImageList();
   

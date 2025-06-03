@@ -1,69 +1,100 @@
 (function (window, document, Mustache) {
   'use strict';
 
+  // ───────────────────────────────────────────────────────
+  // Utility: format a raw byte count into a human‐readable string
+  function formatSize(bytes) {
+    if (bytes === 0) return '0 B';
+    var k = 1024;
+    var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    // cap at last unit if byte count is huge
+    if (i >= sizes.length) i = sizes.length - 1;
+    var size = bytes / Math.pow(k, i);
+    // show one decimal place (e.g. "1.5 MB"), or no decimal if integer
+    var rounded = size < 10 ? size.toFixed(1) : Math.round(size);
+    return rounded + ' ' + sizes[i];
+  }
+  // ───────────────────────────────────────────────────────
+
   // Global FileExplorer object
   var FileExplorer = {
     config: {
-      endpoint: null,      // Absolute URL to explorer_endpoint.php
-      templateBase: null,  // Absolute URL to templates directory (with trailing slash)
-      container: null,     // CSS selector for main container
-      rootFolderId: null   // ID of the "root" folder (null or number)
+      endpoint: null,
+      templateBase: null,
+      container: null,
+      rootFolderId: null
     },
     templates: {
       tree: '',
       grid: '',
-      list:        '',
+      list: '',
       breadcrumbs: ''
     },
 
-    isListView: false,   // par défaut : mode « Grille »
-    lastFolders: [],     // contiendra data.folders après chaque loadFolder
-    lastFiles: [],       // contiendra data.files après chaque loadFolder
+    isListView: true,
+    lastFolders: [],
+    lastFiles: [],
 
     init: function (options) {
-      // Merge user config (must include endpoint and templateBase)
       this.config = Object.assign(this.config, options);
-
       if (!this.config.endpoint || !this.config.templateBase) {
         console.error('FileExplorer: endpoint and templateBase are required.');
         return;
       }
-
-      // Load Mustache templates and start
       this.loadTemplates();
     },
 
-    loadTemplates: function () {
-    var self = this;
-    var basePath = this.config.templateBase;
+  loadTemplates: function () {
+     var self = this;
+     var basePath = this.config.templateBase;
 
-    Promise.all([
-      fetch(basePath + 'folderNodeList.mustache').then(r=>r.text()),
-      fetch(basePath + 'fileGrid.mustache').then(r=>r.text()),
-      fetch(basePath + 'fileList.mustache').then(r=>r.text()), 
-      fetch(basePath + 'breadcrumbs.mustache').then(r=>r.text())
-    ])
-    .then(function (tpls) {
-      self.templates.tree        = tpls[0];
-      self.templates.grid        = tpls[1];
-      self.templates.list        = tpls[2]; 
-      self.templates.breadcrumbs = tpls[3];
+     Promise.all([
+       fetch(basePath + 'folderNodeList.mustache').then(r => r.text()),
+       fetch(basePath + 'fileGrid.mustache').then(r => r.text()),
+       fetch(basePath + 'fileList.mustache').then(r => r.text()),
+       fetch(basePath + 'breadcrumbs.mustache').then(r => r.text())
+     ])
+     .then(function (tpls) {
+       self.templates.tree        = tpls[0];
+       self.templates.grid        = tpls[1];
+       self.templates.list        = tpls[2];
+       self.templates.breadcrumbs = tpls[3];
 
-      // 1) on construit l’UI
-      self.buildSkeleton();
+       // 1) on construit l’UI
+       self.buildSkeleton();
 
-      // 2) on bind aussitôt les toggles de vue
-      self.bindViewToggle();
+       // 2) on bind aussitôt les toggles de vue
+       self.bindViewToggle();
 
-      // 3) on charge les données
-      self.loadTree();
-      self.loadFolder(self.config.rootFolderId);
+      // ───────────────────────────────────────────────────────────────
+      // 2a) INITIAL BUTTON STYLING: make “Liste” button blue if isListView
+      var btnGrid = document.getElementById('fe-view-grid');
+      var btnList = document.getElementById('fe-view-list');
+      if (self.isListView) {
+        // Highlight “Liste” as primary, dim “Grille”
+        btnList.classList.add('primary');
+        btnList.classList.remove('secondary','hollow');
+        btnGrid.classList.add('secondary','hollow');
+        btnGrid.classList.remove('primary');
+      } else {
+        // Highlight “Grille” as primary, dim “Liste”
+        btnGrid.classList.add('primary');
+        btnGrid.classList.remove('secondary','hollow');
+        btnList.classList.add('secondary','hollow');
+        btnList.classList.remove('primary');
+      }
+      // ───────────────────────────────────────────────────────────────
 
-      // 4) puis tous les autres events (drag/drop, mkdir, upload…)
-      self.bindEvents();
-    })
-    .catch(function (err) {
-      console.error('FileExplorer: Error loading templates:', err);
+       // 3) on charge les données
+       self.loadTree();
+       self.loadFolder(self.config.rootFolderId);
+
+       // 4) puis tous les autres events (drag/drop, mkdir, upload…)
+       self.bindEvents();
+     })
+     .catch(function (err) {
+       console.error('FileExplorer: Error loading templates:', err);
     });
   },
 
@@ -142,34 +173,84 @@ buildSkeleton: function () {
     },
 
   loadFolder: function(folderId) {
-    var self = this;
-    this.fetchList(folderId).then(function(data) {
-      // 1) Mémoriser les données reçues pour le toggle Grille/Liste
-      self.lastFolders    = data.folders;
-      self.lastFiles      = data.files;
+  var self = this;
+  this.fetchList(folderId).then(function(data) {
+    // ─────────────────────────────────────────────────────────────
+    // 1) For each file, convert `size_bytes` to a human‐readable string,
+    //    and derive a friendly `displayType` from its MIME type.
+data.files.forEach(function(f) {
+  // ① Format the byte count:
+  f.size_bytes = formatSize(f.size_bytes);
 
-      // 2) Mémoriser l’id courant
-      self.currentFolderId = folderId;
+  // ② Derive a friendlier “displayType”:
+  const mt = f.mime_type || '';
+  if (mt.startsWith('image/')) {
+    // e.g. "image/png" → "PNG Image"
+    const subtype = mt.split('/')[1].toUpperCase();
+    f.displayType = subtype + ' Image';
+  }
+  else if (mt.startsWith('video/')) {
+    // e.g. "video/mp4" → "MP4 Video"
+    const subtype = mt.split('/')[1].toUpperCase();
+    f.displayType = subtype + ' Video';
+  }
+  else if (mt === 'application/pdf') {
+    f.displayType = 'PDF Document';
+  }
+  else if (mt === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    f.displayType = 'Word Document';
+  }
+  else if (mt === 'application/vnd.openxmlformats-officedocument.presentationml.presentation') {
+    f.displayType = 'PowerPoint Presentation';
+  }
+  else if (mt === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+    f.displayType = 'Excel Spreadsheet';
+  }
+  else if (mt.startsWith('application/')) {
+    // fallback: just show the subtype (e.g. “ZIP File” instead of “application/zip”)
+    const rawSub = mt.split('/')[1] || '';
+    // lower-case / split on dots so "vnd.something" becomes “Something File”
+    const pieces = rawSub.split(/[.\-]/).map(
+      part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+    );
+    f.displayType = pieces.join(' ') + ' File';
+  }
+  else {
+    // truly unknown or no mime_type
+    f.displayType = mt || '—';
+  }
+});
 
-      // 3) Mettre à jour les breadcrumbs
-      self.renderBreadcrumbs(data.path);
+    // ─────────────────────────────────────────────────────────────
 
-      // 4) Afficher soit la grille soit la liste
-      self.renderView();
+    // 2) Keep the same data for toggling between Grid/List:
+    self.lastFolders    = data.folders;
+    self.lastFiles      = data.files;
 
-      // 5) Surligner le dossier actif dans l’arborescence
-      if (self.currentFolderId !== null) {
-        document
-          .querySelectorAll('#fe-tree .folder-node')
-          .forEach(function(li) {
-            var isActive = li.getAttribute('data-id') === String(self.currentFolderId);
-            li.classList.toggle('active', isActive);
-          });
-      }
-    }).catch(function(err) {
-      console.error('FileExplorer: loadFolder error', err);
-    });
-  },
+    // 3) Remember current folder ID:
+    self.currentFolderId = folderId;
+
+    // 4) Update breadcrumbs:
+    self.renderBreadcrumbs(data.path);
+
+    // 5) Render either Grid or List view:
+    self.renderView();
+
+    // 6) Highlight “active” folder in the tree:
+    if (self.currentFolderId !== null) {
+      document
+        .querySelectorAll('#fe-tree .folder-node')
+        .forEach(function(li) {
+          var isActive = li.getAttribute('data-id') === String(self.currentFolderId);
+          li.classList.toggle('active', isActive);
+        });
+    }
+  }).catch(function(err) {
+    console.error('FileExplorer: loadFolder error', err);
+  });
+},
+
+
 
 
 
@@ -213,14 +294,14 @@ renderView: function() {
   var gridEl = document.getElementById('fe-grid');
 
   if (this.isListView) {
-    // drop the Foundation row so the table spans full width
+    // list: remove the Foundation row wrapper so the table can span 100%
     gridEl.classList.remove('row');
     gridEl.innerHTML = Mustache.render(this.templates.list, {
       folders: this.lastFolders,
       files:   this.lastFiles
     });
   } else {
-    // make it a row again so each .columns inside fileGrid lines up
+    // grid: re-add the row so each .columns lines up correctly
     gridEl.classList.add('row');
     gridEl.innerHTML = Mustache.render(this.templates.grid, {
       folders: this.lastFolders,
@@ -228,6 +309,7 @@ renderView: function() {
     });
   }
 },
+
 
 
   bindEvents: function () {

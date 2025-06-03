@@ -1,50 +1,108 @@
-/* Conteneur de la vue en liste */
-.list-view #fe-grid {
-  display: block;
-}
-.list-view .file-item {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem;
-  border-bottom: 1px solid #e6e6e6;
-}
-.list-view .file-item .card {
-  box-shadow: none;
-  width: 100%;
-  display: flex;
-}
-.list-view .file-item .card-divider,
-.list-view .file-item .card-section {
-  border: none;
-  display: flex;
-  align-items: center;
-}
-.list-view .file-item .card-divider {
-  width: 40px;
-  justify-content: center;
-}
-.list-view .file-item .card-section {
-  justify-content: space-between;
-  padding-left: 1rem;
-}
-.list-view .file-item .actions {
-  opacity: 0;
-  transition: opacity .2s;
-}
-.list-view .file-item:hover .actions {
-  opacity: 1;
+/*------------------------------------------------------------
+  1) LIST VIEW (when #fe-grid does NOT have the "row" class)
+     → we style every .file-item as a flex row, full-width, etc.
+-------------------------------------------------------------*/
+/* Note: "list view" = #fe-grid no longer has class="row" */
+#fe-grid:not(.row) {
+  display: block; /* so the table (or list items) span full width */
+  padding: 0;     /* remove any leftover padding from a Foundation row */
 }
 
-/* Grille : ombres + hover sur les cartes */
-#fe-grid .card {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  transition: box-shadow .2s;
+/* If you are rendering the <table class="file-list"> in list mode: */
+#fe-grid:not(.row) .file-list {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
 }
-#fe-grid .card:hover {
+#fe-grid:not(.row) .file-list thead {
+  background: #fafafa;
+  border-bottom: 1px solid #ddd;
+}
+#fe-grid:not(.row) .file-list th,
+#fe-grid:not(.row) .file-list td {
+  padding: 0.75rem;
+  text-align: left;
+  font-size: 0.9rem;
+}
+#fe-grid:not(.row) .file-list tbody tr:hover {
+  background: #f1f3f4;
+  cursor: pointer;
+}
+/* Icon + text inline in the table */
+#fe-grid:not(.row) .file-list i.material-icons {
+  vertical-align: middle;
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+/* Allocate widths to each column */
+#fe-grid:not(.row) .file-list thead tr th:nth-child(1),
+#fe-grid:not(.row) .file-list tbody tr td:nth-child(1) {
+  width: 40%;
+}
+#fe-grid:not(.row) .file-list thead tr th:nth-child(2),
+#fe-grid:not(.row) .file-list tbody tr td:nth-child(2) {
+  width: 20%;
+}
+#fe-grid:not(.row) .file-list thead tr th:nth-child(3),
+#fe-grid:not(.row) .file-list tbody tr td:nth-child(3) {
+  width: 20%;
+}
+#fe-grid:not(.row) .file-list thead tr th:nth-child(4),
+#fe-grid:not(.row) .file-list tbody tr td:nth-child(4) {
+  width: 15%;
+}
+#fe-grid:not(.row) .file-list thead tr th:nth-child(5),
+#fe-grid:not(.row) .file-list tbody tr td:nth-child(5) {
+  width: 5%;
+}
+/* Ellipsis for long file/folder names */
+#fe-grid:not(.row) .file-list .name {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+
+/*------------------------------------------------------------
+  2) GRID VIEW (when #fe-grid has class="row")
+     → we want each .file-item to behave like a Foundation column
+       with appropriate card styling, spacing, etc.
+-------------------------------------------------------------*/
+/* add a small gap between each "column" */
+#fe-grid.row .file-item {
+  margin-bottom: 1rem;
+}
+/* if your fileGrid.mustache uses something like <div class="small-12 medium-6 large-3 columns file-item">… */
+#fe-grid.row .file-item .card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  transition: box-shadow 0.2s;
+}
+#fe-grid.row .file-item .card:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
+/* If your card markup has a .card-divider and .card-section */
+#fe-grid.row .file-item .card-divider i {
+  font-size: 2rem;
+  padding: 1rem 0;
+}
+#fe-grid.row .file-item .card-section {
+  font-size: 0.85rem;
+  padding: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-/* Breadcrumbs styled comme des Pills */
+
+/*------------------------------------------------------------
+  3) TOOLBAR + BREADCRUMBS + TREE (shared both modes)
+-------------------------------------------------------------*/
+/* Breadcrumbs styled like “pills” */
 #fe-breadcrumbs {
   margin-bottom: 1rem;
 }
@@ -61,90 +119,16 @@
   background: #cacaca;
 }
 
-/* Toolbar Inputs */
-#fe-toolbar .has-input {
-  position: relative;
-  flex: 1;
+/* Toolbar Buttons & Inputs */
+#fe-toolbar {
+  max-width: 900px;
+  margin: 0 auto 1rem;
 }
-#fe-toolbar .has-input input {
-  width: 100%;
-  padding-right: 2.5rem;
-}
-#fe-toolbar .has-input .search {
-  position: absolute;
-  top: 0; right: 0;
-  height: 100%;
-  border-left: none;
-}
-
-/* Boutons actifs */
-#fe-toolbar .button.is-active {
-  background: #007acc;
-  color: #fff;
-}
-/* bouton “hollow” inactif, plein actif */
-#fe-toolbar .button.hollow { background: transparent; color: #007acc; border-color: #007acc; }
-#fe-toolbar .button.hollow.is-active { background: #007acc; color: #fff; }
-
-/* petite marge interne sur les icônes */
-.btn-label { margin-left: .3rem; }
-
-/* limiter la largeur de la toolbar */
-#fe-toolbar { max-width: 900px; margin: 0 auto 1rem; }
-
-/* espacer les cellules */
-#fe-toolbar .cell.shrink { margin-right: .5rem; }
-/* Ajustements globaux */
-#fe-grid .card { border: 1px solid #e0e0e0; border-radius: 4px; }
-#fe-grid .card-divider i { font-size: 1.5rem; }
-
-/* En mode “list-view” : mettre la ligne active en gris clair */
-.list-view .file-item.active { background: #f5f5f5; }
-.list-view .file-item { cursor: pointer; }
-.list-view .file-item .actions { right: 1rem; }
-.folder-list li { padding: 0.25rem 0.5rem; }
-.folder-list li:hover { background: #f0f0f0; }
-.folder-list li.expanded > ul { margin-left: 1rem; }
-/* surlignage du nœud actif */
-#fe-tree .folder-node.active {
-  background: #e6f0fa;
-}
-
-#fe-tree .folder-node.active .folder-name {
-  background-color: #e0f0ff;
-  border-radius: 3px;
-}
-
-.list-view #fe-grid {
-  display: block;
-}
-.list-view .file-item {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem;
-  border-bottom: 1px solid #e6e6e6;
-}
-.list-view .file-item .card {
-  box-shadow: none;
-  width: 100%;
-  display: flex;
-  border-radius: 0;
-}
-.list-view .file-item .card-divider {
-  width: 48px;
-  text-align: center;
-}
-.list-view .file-item .card-section {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-}
-
 #fe-toolbar .button-group .button {
   border-radius: 4px;
   padding: 0.5rem 1rem;
   margin-right: 0.5rem;
-  transition: background-color .2s;
+  transition: background-color 0.2s;
 }
 #fe-toolbar .button.primary {
   background-color: #1a73e8;
@@ -157,83 +141,59 @@
 #fe-toolbar .button.secondary.hollow:hover {
   background-color: rgba(26,115,232,0.1);
 }
-
-/* --- Table List View --- */
-#fe-grid .file-list {
-  width: 100%;
-  border-collapse: collapse;
-}
-#fe-grid .file-list thead {
-  background: #fafafa;
-  border-bottom: 1px solid #ddd;
-}
-#fe-grid .file-list th, 
-#fe-grid .file-list td {
-  padding: 0.75rem;
-  text-align: left;
-  font-size: 0.9rem;
-}
-#fe-grid .file-list tbody tr:hover {
-  background: #f1f3f4;
-  cursor: pointer;
-}
-
-/* Icon + text inline */
-.file-list i.material-icons {
-  vertical-align: middle;
-  margin-right: 0.5rem;
-  font-size: 1.2rem;
-}
-
-/* --- Grid View Thumbnails --- */
-#fe-grid.grid-view .file-item {
-  width: 120px;
-  margin: 0.5rem;
-  text-align: center;
-}
-#fe-grid.grid-view .file-item .card {
-  box-shadow: none;
-  border: 1px solid #e0e0e0;
-}
-#fe-grid.grid-view .file-item:hover .card {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-#fe-grid.grid-view .file-item .card-divider {
-  font-size: 2rem;
-  padding: 1rem 0;
-}
-#fe-grid.grid-view .file-item .card-section {
-  font-size: 0.85rem;
-  padding: 0.5rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-/* Pour que le <ul> ressemble à ta liste : */
-.file-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.file-list .file-item {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem;
-  border-bottom: 1px solid #e6e6e6;
-  cursor: pointer; /* pour signifier qu’on peut cliquer */
-}
-.file-list .file-item .actions { opacity: 0; transition: opacity .2s; }
-.file-list .file-item:hover .actions { opacity: 1; }
 #fe-toolbar .input-group {
   display: inline-flex;
   align-items: center;
 }
-
+#fe-toolbar .input-group-field {
+  flex: 1;
+}
 #fe-toolbar .input-group-label {
-  cursor: pointer;      /* hand cursor on hover */
-  margin-left: 0.5rem;  /* space before input if you like */
+  cursor: pointer;
+  margin-left: 0.5rem;
 }
 
-#fe-toolbar .input-group-field {
-  flex: 1;              /* fill remaining width */
+/* Tree view adjustments */
+.folder-list li {
+  padding: 0.25rem 0.5rem;
+}
+.folder-list li:hover {
+  background: #f0f0f0;
+}
+.folder-list li.expanded > ul {
+  margin-left: 1rem;
+}
+#fe-tree .folder-node.active {
+  background: #e6f0fa;
+}
+#fe-tree .folder-node.active .folder-name {
+  background-color: #e0f0ff;
+  border-radius: 3px;
+}
+
+/* A little shadow on every card (both modes) */
+#fe-grid .card {
+  border-radius: 4px;
+  /* border & box-shadow already set above */
+}
+
+/* ensure actions icons in list display on hover */
+#fe-grid .file-item .actions {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+#fe-grid .file-item:hover .actions {
+  opacity: 1;
+}
+
+/* Highlight active row in list mode */
+#fe-grid:not(.row) .file-item.active {
+  background: #f5f5f5;
+}
+
+/* If you had any extra “.row” padding inherited—remove it */
+#fe-grid,
+#fe-tree {
+  padding: 0;
+  margin: 0;
 }

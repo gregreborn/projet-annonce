@@ -1,20 +1,24 @@
 {{! fileList.mustache }}
 
-<table class="file-list hover" style="width:100%;">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Last modified</th>
-      <th>Size</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
+ <table class="file-list hover" style="width:100%;">
+   <thead>
+     <tr>
+       <th>Name</th>
+       <th>Type</th>
+       <th>Last modified</th>
+       <th>Size</th>
+       <th></th>
+     </tr>
+   </thead>
+   <tbody>
+
     {{#folders}}
       <tr class="file-item" data-id="{{id}}" data-type="folder">
-        <td><i class="material-icons">folder</i> <span class="name">{{name}}</span></td>
-        <td>Dossier</td>
+        <td>
+          <i class="material-icons">folder</i>
+          <span class="name">{{name}}</span>
+        </td>
+        <td></td>       {{!-- leave “Type” blank for folders --}}
         <td>{{updated_at}}</td>
         <td>—</td>
         <td class="actions">
@@ -26,10 +30,13 @@
 
     {{#files}}
       <tr class="file-item" data-id="{{id}}" data-type="file">
-        <td><i class="material-icons">insert_drive_file</i> <span class="name">{{name}}</span></td>
-        <td>Fichier</td>
+        <td>
+          <i class="material-icons">insert_drive_file</i>
+          <span class="name">{{name}}</span>
+        </td>
+        <td>{{displayType}}</td>    {{!-- show the actual MIME type here --}}
         <td>{{updated_at}}</td>
-        <td>{{size_bytes}} octets</td>
+        <td>{{size_bytes}}</td>    {{!-- no “octets” suffix, since size_bytes is already formatted --}}
         <td class="actions">
           <i class="material-icons fe-rename" title="Renommer">edit</i>
           <i class="material-icons fe-delete" title="Supprimer">delete</i>
@@ -37,12 +44,12 @@
       </tr>
     {{/files}}
 
-    {{^folders}}{{^files}}
-      <tr>
-        <td colspan="5" class="empty">
-          <i class="material-icons">folder</i> Aucun fichier ou dossier trouvé.
-        </td>
-      </tr>
-    {{/files}}{{/folders}}
-  </tbody>
-</table>
+     {{^folders}}{{^files}}
+       <tr>
+         <td colspan="5" class="empty">
+           <i class="material-icons">folder</i> Aucun fichier ou dossier trouvé.
+         </td>
+       </tr>
+     {{/files}}{{/folders}}
+   </tbody>
+ </table>
